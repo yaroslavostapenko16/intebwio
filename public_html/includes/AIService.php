@@ -335,7 +335,7 @@ PROMPT;
     private function getModelForProvider($provider) {
         $models = [
             'openai' => 'gpt-4-turbo',
-            'gemini' => 'gemini-1.5-pro',  // Updated from gemini-pro to gemini-1.5-pro
+            'gemini' => 'gemini-2.5-flash',  // Latest Gemini model with best performance
             'anthropic' => 'claude-3-sonnet-20240229'
         ];
         return $models[$provider] ?? 'gpt-4-turbo';

@@ -4,7 +4,7 @@
  * Shows problems and provides solutions
  */
 
-define('GEMINI_API_KEY', 'AIzaSyBbgKuLh-pYnG2S-3woVM53_1cdnuwxino');
+define('GEMINI_API_KEY', 'AIzaSyAPMrwvoxVtFBegqxqOT1JH_7QQZLnhqzg');
 
 $apiKey = GEMINI_API_KEY;
 
@@ -83,7 +83,7 @@ if ($httpCode === 200) {
     echo "3. CONTENT GENERATION TEST\n";
     echo "─────────────────────────────────────────────────────────────\n";
     
-    $genUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=' . $apiKey;
+    $genUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=' . $apiKey;
     
     $genData = [
         'contents' => [

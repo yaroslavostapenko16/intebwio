@@ -3,7 +3,7 @@
  * List all available Gemini models
  */
 
-define('GEMINI_API_KEY', 'AIzaSyBbgKuLh-pYnG2S-3woVM53_1cdnuwxino');
+define('GEMINI_API_KEY', 'AIzaSyAPMrwvoxVtFBegqxqOT1JH_7QQZLnhqzg');
 
 $apiKey = GEMINI_API_KEY;
 

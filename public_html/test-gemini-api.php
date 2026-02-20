@@ -6,7 +6,7 @@
 
 // Load only API keys without database
 if (!defined('GEMINI_API_KEY')) {
-    define('GEMINI_API_KEY', 'AIzaSyBbgKuLh-pYnG2S-3woVM53_1cdnuwxino');
+    define('GEMINI_API_KEY', 'AIzaSyAPMrwvoxVtFBegqxqOT1JH_7QQZLnhqzg');
     define('AI_PROVIDER', 'gemini');
 }
 
@@ -27,7 +27,7 @@ if ($apiKey === 'YOUR_GEMINI_API_KEY' || empty($apiKey)) {
 echo "\n--- Testing Gemini API Connection ---\n";
 
 $testPrompt = "Write a brief hello world message.";
-$modelName = 'gemini-1.5-pro';  // Updated model name
+$modelName = 'gemini-2.5-flash';  // Latest Gemini model
 
 $url = 'https://generativelanguage.googleapis.com/v1/models/' . $modelName . ':generateContent?key=' . $apiKey;
 

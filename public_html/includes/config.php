@@ -35,8 +35,8 @@ define('CONTENT_SOURCES', [
 ]);
 
 // API Keys (set your actual keys here)
-define('GOOGLE_API_KEY', 'AIzaSyBbgKuLh-pYnG2S-3woVM53_1cdnuwxino');
-define('GEMINI_API_KEY', 'AIzaSyBbgKuLh-pYnG2S-3woVM53_1cdnuwxino');
+define('GOOGLE_API_KEY', 'AIzaSyAPMrwvoxVtFBegqxqOT1JH_7QQZLnhqzg');
+define('GEMINI_API_KEY', 'AIzaSyAPMrwvoxVtFBegqxqOT1JH_7QQZLnhqzg');
 define('AI_PROVIDER', 'gemini');
 define('SERPAPI_KEY', 'YOUR_SERPAPI_KEY');
 
