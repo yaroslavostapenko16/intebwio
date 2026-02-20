@@ -6,6 +6,10 @@
  * ~300 lines
  */
 
+// Increase timeout for content aggregation and AI generation
+set_time_limit(300);  // 5 minutes
+ini_set('default_socket_timeout', 120);
+
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/../includes/config.php';
@@ -25,6 +29,7 @@ try {
     
     $searchQuery = trim($data['query']);
     $useExisting = isset($data['use_existing']) ? (bool)$data['use_existing'] : false;
+    $skipAggregation = isset($data['skip_aggregation']) ? (bool)$data['skip_aggregation'] : false;
     
     // Normalize query (lowercase, remove extra spaces)
     $normalizedQuery = strtolower(preg_replace('/\s+/', ' ', $searchQuery));
@@ -62,11 +67,21 @@ try {
     // Generate new landing page with Gemini AI
     $startTime = microtime(true);
     
-    // Step 1: Aggregate content from multiple sources
-    $aggregator = new ContentAggregator($pdo);
-    $aggregatedResults = $aggregator->aggregateContent($normalizedQuery, 0);
+    // Step 1: Aggregate content from multiple sources (optional, can skip for speed)
+    $aggregatedResults = [];
     
-    // If no results from aggregator, use fallback
+    if (!$skipAggregation) {
+        error_log("Content aggregation: Starting for query '$searchQuery'");
+        $aggregationStart = microtime(true);
+        
+        $aggregator = new ContentAggregator($pdo);
+        $aggregatedResults = $aggregator->aggregateContent($normalizedQuery, 0);
+        
+        $aggregationTime = microtime(true) - $aggregationStart;
+        error_log("Content aggregation: Completed in " . round($aggregationTime, 2) . "s, found " . count($aggregatedResults) . " items");
+    }
+    
+    // If no results from aggregator or skipped, use minimal content
     if (empty($aggregatedResults)) {
         $aggregatedResults = [[
             'title' => $normalizedQuery,
@@ -128,7 +143,7 @@ try {
                 substr($description, 0, 500),
                 $htmlContent,
                 'gemini',
-                'gemini-pro'
+                'gemini-2.5-flash'
             ]);
             
             $pageId = $pdo->lastInsertId();
@@ -164,7 +179,7 @@ try {
         'html' => $htmlContent,
         'metadata' => [
             'ai_provider' => 'gemini',
-            'ai_model' => 'gemini-pro',
+            'ai_model' => 'gemini-2.5-flash',
             'generation_time_seconds' => round($generationTime, 2),
             'sources_count' => count($aggregatedResults),
             'cache_key' => $cacheKey,

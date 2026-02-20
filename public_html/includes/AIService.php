@@ -22,22 +22,39 @@ class AIService {
      */
     public function generatePageContent($searchQuery, $aggregatedContent = []) {
         try {
-            error_log("AI Content Generation started for query: " . $searchQuery);
+            error_log("=== AI Content Generation started for: " . $searchQuery);
             error_log("Using AI Provider: " . $this->apiProvider);
+            error_log("Available aggregated content items: " . count($aggregatedContent));
             
+            $startTime = microtime(true);
             $prompt = $this->buildPrompt($searchQuery, $aggregatedContent);
+            $promptTime = microtime(true) - $startTime;
+            
+            error_log("Prompt built in " . round($promptTime, 2) . " seconds (" . strlen($prompt) . " chars)");
             
             switch ($this->apiProvider) {
                 case 'openai':
-                    return $this->callOpenAI($prompt);
+                    error_log("Calling OpenAI API...");
+                    $result = $this->callOpenAI($prompt);
+                    break;
                 case 'gemini':
-                    return $this->callGemini($prompt);
+                    error_log("Calling Gemini API...");
+                    $result = $this->callGemini($prompt);
+                    break;
                 case 'anthropic':
-                    return $this->callAnthropic($prompt);
+                    error_log("Calling Anthropic API...");
+                    $result = $this->callAnthropic($prompt);
+                    break;
                 default:
                     error_log("Unknown AI provider: " . $this->apiProvider . ", using fallback");
-                    return $this->generateFallbackContent($searchQuery, $aggregatedContent);
+                    $result = $this->generateFallbackContent($searchQuery, $aggregatedContent);
             }
+            
+            $totalTime = microtime(true) - $startTime;
+            error_log("AI Content Generation completed in " . round($totalTime, 2) . " seconds");
+            
+            return $result;
+            
         } catch (Exception $e) {
             error_log("AI Generation error: " . $e->getMessage() . " | Stack: " . $e->getTraceAsString());
             return null;
@@ -165,7 +182,7 @@ PROMPT;
         }
         
         // Use the model from configuration
-        $model = $this->model ?: 'gemini-pro';
+        $model = $this->model ?: 'gemini-2.5-flash';
         $url = 'https://generativelanguage.googleapis.com/v1/models/' . $model . ':generateContent?key=' . $this->apiKey;
         
         $data = [
@@ -185,15 +202,23 @@ PROMPT;
             CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_TIMEOUT => 60,
+            CURLOPT_TIMEOUT => 120,  // Increased to 120 seconds (2 minutes)
+            CURLOPT_CONNECTTIMEOUT => 30,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2
         ]);
         
+        error_log("Gemini API: Sending request to $model model...");
+        $startTime = microtime(true);
+        
         $response = curl_exec($ch);
         $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $elapsedTime = microtime(true) - $startTime;
+        
         curl_close($ch);
+        
+        error_log("Gemini API: Request completed in " . round($elapsedTime, 2) . "s (HTTP $httpCode)");
         
         // Log curl errors
         if ($curlError) {
@@ -206,6 +231,7 @@ PROMPT;
             if (isset($result['candidates']) && !empty($result['candidates'])) {
                 $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
                 if ($text) {
+                    error_log("Gemini API: Successfully generated content (" . strlen($text) . " characters)");
                     return $text;
                 }
             }

@@ -364,6 +364,10 @@
             hideSuccess();
 
             try {
+                // Add timeout to fetch request (3 minutes = 180 seconds)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 180000);
+
                 const response = await fetch('/api/ai-search.php', {
                     method: 'POST',
                     headers: {
@@ -372,8 +376,11 @@
                     body: JSON.stringify({
                         query: query,
                         use_existing: false
-                    })
+                    }),
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
 
                 const data = await response.json();
 
@@ -387,7 +394,11 @@
                 displayPage(data);
                 showSuccess(`✓ Landing page generated successfully in ${data.metadata.generation_time_seconds}s`);
             } catch (error) {
-                showError('Error: ' + error.message);
+                if (error.name === 'AbortError') {
+                    showError('Generation timeout - took too long. Please try a simpler query.');
+                } else {
+                    showError('Error: ' + error.message);
+                }
                 console.error('Generation error:', error);
             } finally {
                 showLoading(false);

@@ -52,6 +52,10 @@ ini_set('display_errors', DEBUG_MODE ? 1 : 0);
 ini_set('log_errors', 1);
 ini_set('error_log', LOG_FILE);
 
+// Timeout Settings for long-running operations
+ini_set('max_execution_time', 300);  // 5 minutes for content generation
+ini_set('default_socket_timeout', 120);  // 2 minutes for external API calls
+
 // Enable CORS for API
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');

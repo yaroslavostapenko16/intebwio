@@ -4,6 +4,10 @@
  * Handles search queries and page creation/retrieval
  */
 
+// Increase timeout for content aggregation and AI generation
+set_time_limit(300);  // 5 minutes
+ini_set('default_socket_timeout', 120);
+
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/../includes/config.php';
