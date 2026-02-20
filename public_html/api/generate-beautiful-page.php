@@ -5,6 +5,9 @@
  * ~350 lines
  */
 
+// Start output buffering to prevent accidental output
+ob_start();
+
 // Increase timeout for content generation
 set_time_limit(300);  // 5 minutes
 ini_set('default_socket_timeout', 120);
@@ -22,12 +25,37 @@ require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/AIService.php';
 require_once __DIR__ . '/../includes/EnhancedPageGeneratorV2.php';
 
+// Clean any accidental output from includes
+ob_end_clean();
+ob_start();
+
 try {
-    // Get input data
-    $data = json_decode(file_get_contents('php://input'), true) ?? $_GET;
+    // Get input data (handle both JSON and GET parameters)
+    $jsonInput = file_get_contents('php://input');
+    $data = null;
+    
+    if (!empty($jsonInput)) {
+        $data = json_decode($jsonInput, true);
+        if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+            ob_end_clean();
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid JSON input: ' . json_last_error_msg(),
+                'code' => 'INVALID_JSON'
+            ]);
+            exit;
+        }
+    }
+    
+    // Fallback to GET parameters if no JSON data
+    if (!$data) {
+        $data = $_GET;
+    }
     
     // Validate query parameter
     if (!isset($data['query']) || empty(trim($data['query']))) {
+        ob_end_clean();
         http_response_code(400);
         echo json_encode([
             'success' => false,
@@ -46,6 +74,7 @@ try {
     
     // Validate query length
     if (strlen($normalizedQuery) < 2 || strlen($normalizedQuery) > 500) {
+        ob_end_clean();
         http_response_code(400);
         echo json_encode([
             'success' => false,
@@ -82,6 +111,7 @@ try {
                 $updateStmt = $pdo->prepare("UPDATE pages SET view_count = view_count + 1, updated_at = NOW() WHERE id = ?");
                 $updateStmt->execute([$existing['id']]);
                 
+                ob_end_clean();
                 http_response_code(200);
                 echo json_encode([
                     'success' => true,
@@ -121,6 +151,7 @@ try {
     
     if (!$aiContent) {
         error_log("AI content generation failed");
+        ob_end_clean();
         http_response_code(500);
         echo json_encode([
             'success' => false,
@@ -148,6 +179,7 @@ try {
     
     if (!$htmlContent) {
         error_log("Page generation failed");
+        ob_end_clean();
         http_response_code(500);
         echo json_encode([
             'success' => false,
@@ -226,6 +258,7 @@ try {
     error_log("Page layout: " . round($pageGenTime, 2) . "s");
     
     // Step 7: Return response
+    ob_end_clean();
     http_response_code(201);
     echo json_encode([
         'success' => true,
@@ -254,6 +287,7 @@ try {
 } catch (Exception $e) {
     error_log("Enhanced API Error: " . $e->getMessage() . "\nStack: " . $e->getTraceAsString());
     
+    ob_end_clean();
     http_response_code(500);
     echo json_encode([
         'success' => false,

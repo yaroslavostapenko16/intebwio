@@ -658,7 +658,37 @@
 
                 clearTimeout(timeoutId);
 
-                const data = await response.json();
+                // Check if response is valid
+                if (!response.ok) {
+                    const text = await response.text();
+                    try {
+                        const errorData = JSON.parse(text);
+                        showStatus('Error: ' + (errorData.message || 'Unknown error'), 'error');
+                    } catch {
+                        showStatus('Server error (' + response.status + '): ' + text.substring(0, 100), 'error');
+                    }
+                    showLoading(false);
+                    return;
+                }
+
+                // Parse JSON response
+                let data;
+                const responseText = await response.text();
+                
+                if (!responseText) {
+                    showStatus('Empty response from server', 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    showStatus('JSON parsing error: ' + parseError.message, 'error');
+                    console.error('Response text:', responseText.substring(0, 200));
+                    showLoading(false);
+                    return;
+                }
 
                 if (data.success) {
                     // Store the generated page
