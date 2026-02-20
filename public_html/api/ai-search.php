@@ -18,15 +18,23 @@ require_once __DIR__ . '/../includes/AIService.php';
 require_once __DIR__ . '/../includes/AdvancedPageGenerator.php';
 
 try {
+    error_log("=== PAGE GENERATION START ===");
+    error_log("Memory usage: " . round(memory_get_usage() / 1024 / 1024, 2) . "MB");
+    error_log("Max memory: " . ini_get('memory_limit'));
+    
     // Check if PDO is available before proceeding
     if (!isset($pdo)) {
+        error_log("ERROR: PDO not initialized");
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Database connection failed']);
         exit;
     }
     
+    error_log("Step 1: PDO connection verified");
+    
     // Accept both POST JSON and GET parameters
     $data = json_decode(file_get_contents('php://input'), true) ?? $_GET;
+    error_log("Step 2: Input data parsed");
     
     if (!isset($data['query']) || empty(trim($data['query']))) {
         http_response_code(400);
@@ -35,11 +43,13 @@ try {
     }
     
     $searchQuery = trim($data['query']);
+    error_log("Step 3: Query received: '$searchQuery'")
     $useExisting = isset($data['use_existing']) ? (bool)$data['use_existing'] : false;
     $skipAggregation = isset($data['skip_aggregation']) ? (bool)$data['skip_aggregation'] : false;
     
     // Normalize query (lowercase, remove extra spaces)
     $normalizedQuery = strtolower(preg_replace('/\s+/', ' ', $searchQuery));
+    error_log("Step 4: Query normalized to: '$normalizedQuery'");
     
     // Input validation
     if (strlen($normalizedQuery) < 2 || strlen($normalizedQuery) > 500) {
@@ -47,6 +57,8 @@ try {
         echo json_encode(['success' => false, 'message' => 'Query must be between 2 and 500 characters']);
         exit;
     }
+    
+    error_log("Step 5: Input validation passed")
     
     // Optional: Check for existing page if requested
     if ($useExisting && function_exists('class_exists') && class_exists('Database')) {
@@ -76,6 +88,7 @@ try {
     
     // Step 1: Aggregate content from multiple sources (optional, can skip for speed)
     $aggregatedResults = [];
+    error_log("Step 6: Starting content aggregation (skip: " . ($skipAggregation ? 'yes' : 'no') . ")");
     
     if (!$skipAggregation) {
         error_log("Content aggregation: Starting for query '$searchQuery'");
@@ -86,6 +99,7 @@ try {
         
         $aggregationTime = microtime(true) - $aggregationStart;
         error_log("Content aggregation: Completed in " . round($aggregationTime, 2) . "s, found " . count($aggregatedResults) . " items");
+        error_log("Step 7: Content aggregation complete");
     }
     
     // If no results from aggregator or skipped, use minimal content
@@ -95,6 +109,7 @@ try {
             'description' => 'Information about ' . $normalizedQuery,
             'source' => 'AI Generated'
         ]];
+        error_log("Using fallback aggregated results");
     }
     
     // Step 2: Generate AI content with Gemini
@@ -103,10 +118,17 @@ try {
         GEMINI_API_KEY
     );
     
+    error_log("Step 8: AIService created, starting content generation");
+    error_log("Memory before AI generation: " . round(memory_get_usage() / 1024 / 1024, 2) . "MB");
+    
     // Generate comprehensive HTML content
     $aiContent = $aiService->generatePageContent($normalizedQuery, $aggregatedResults);
     
+    error_log("Memory after AI generation: " . round(memory_get_usage() / 1024 / 1024, 2) . "MB");
+    error_log("Step 9: AI content generated, length: " . strlen($aiContent ?? '') . " chars");
+    
     if (!$aiContent) {
+        error_log("ERROR: AI content generation returned empty/null");
         http_response_code(500);
         echo json_encode([
             'success' => false,
@@ -116,10 +138,17 @@ try {
     }
     
     // Step 3: Generate full landing page using AdvancedPageGenerator
+    error_log("Step 10: Creating AdvancedPageGenerator");
     $pageGenerator = new AdvancedPageGenerator($pdo, $aiService);
+    
+    error_log("Step 11: Generating beautiful page");
     $htmlContent = $pageGenerator->generateAIPage($normalizedQuery, $aggregatedResults, $aiContent);
     
+    error_log("Step 12: Page generated, length: " . strlen($htmlContent ?? '') . " chars");
+    error_log("Memory after page generation: " . round(memory_get_usage() / 1024 / 1024, 2) . "MB");
+    
     if (!$htmlContent) {
+        error_log("ERROR: Page generation returned empty/null");
         http_response_code(500);
         echo json_encode([
             'success' => false,
@@ -129,20 +158,26 @@ try {
     }
     
     // Step 4: Extract metadata from content
+    error_log("Step 13: Extracting metadata");
     $title = ucfirst($normalizedQuery);
     preg_match('/<meta name="description" content="([^"]*)"/', $htmlContent, $metaMatch);
     $description = $metaMatch[1] ?? 'AI-generated comprehensive page about ' . $normalizedQuery;
+    error_log("Step 14: Metadata extracted - Title: '$title', Description length: " . strlen($description));
     
     // Step 5: Store page in database (if database available)
+    error_log("Step 15: Starting database insert");
     $pageId = null;
     if (function_exists('class_exists')) {
         try {
+            error_log("Preparing INSERT statement");
             $insertStmt = $pdo->prepare("
                 INSERT INTO pages (
                     search_query, title, description, html_content, 
                     ai_provider, ai_model, view_count, status, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, 1, 'active', NOW(), NOW())
             ");
+            
+            error_log("Executing INSERT with: query='$normalizedQuery', title_len=" . strlen($title) . ", desc_len=" . strlen($description) . ", html_len=" . strlen($htmlContent));
             
             $insertStmt->execute([
                 $normalizedQuery,
@@ -154,12 +189,15 @@ try {
             ]);
             
             $pageId = $pdo->lastInsertId();
+            error_log("Step 16: Database insert successful, page_id: $pageId");
         } catch (Exception $dbError) {
             error_log("Database insert error: " . $dbError->getMessage());
+            error_log("This is not critical - page is still generated, just not stored");
         }
     }
     
     // Step 6: Cache the generated page
+    error_log("Step 17: Setting up cache");
     $cacheKey = 'page_' . md5($normalizedQuery . '_' . time());
     if (function_exists('apcu_store')) {
         apcu_store($cacheKey, [
@@ -168,11 +206,17 @@ try {
             'timestamp' => time(),
             'html' => $htmlContent
         ], 604800); // 7 days
+        error_log("Step 18: Cache stored with key: $cacheKey");
+    } else {
+        error_log("Step 18: APCu not available, skipping cache");
     }
     
     $generationTime = microtime(true) - $startTime;
+    error_log("Step 19: Total generation time: " . round($generationTime, 2) . "s");
+    error_log("Memory peak: " . round(memory_get_peak_usage() / 1024 / 1024, 2) . "MB");
     
     // Step 7: Return successful response with full page content
+    error_log("Step 20: Building JSON response");
     http_response_code(201); // Created
     
     $responseData = [
@@ -197,11 +241,13 @@ try {
         ]
     ];
     
+    error_log("Step 21: Response data prepared, size: " . strlen(json_encode($responseData)) . " bytes");
+    
     // Try to encode response, with fallback
     $jsonResponse = json_encode($responseData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($jsonResponse === false) {
         // If JSON encoding fails, remove large HTML and try again
-        error_log("JSON encoding failed for full response, fallback to metadata-only response");
+        error_log("ERROR: JSON encoding failed for full response, attempting fallback");
         $jsonResponse = json_encode([
             'success' => true,
             'message' => 'Page generated successfully (metadata only)',
@@ -213,13 +259,22 @@ try {
             'redirect_to' => '/page.php?id=' . $pageId,
             'metadata' => $responseData['metadata']
         ]);
+        error_log("Step 22: Using fallback response (metadata only)");
+    } else {
+        error_log("Step 22: JSON encoding successful, response size: " . strlen($jsonResponse) . " bytes");
     }
     
+    error_log("Step 23: Sending response to client");
     echo $jsonResponse;
+    error_log("=== PAGE GENERATION COMPLETE ===");
     
     
 } catch (Exception $e) {
-    error_log("Search API error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+    error_log("=== PAGE GENERATION FAILED ===");
+    error_log("Exception Type: " . get_class($e));
+    error_log("Exception Message: " . $e->getMessage());
+    error_log("Stack Trace:\n" . $e->getTraceAsString());
+    error_log("Memory at error: " . round(memory_get_usage() / 1024 / 1024, 2) . "MB");
     
     http_response_code(500);
     
@@ -237,7 +292,9 @@ try {
         $errorResponse['line'] = $e->getLine();
     }
     
+    error_log("Sending error response to client");
     echo json_encode($errorResponse);
+    error_log("=== ERROR RESPONSE SENT ===");
 }
 
 ?>

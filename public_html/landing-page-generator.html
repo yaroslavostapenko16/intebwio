@@ -385,7 +385,15 @@
                 const data = await response.json();
 
                 if (!data.success) {
-                    throw new Error(data.message || 'Failed to generate page');
+                    let errorMsg = data.message || 'Failed to generate page';
+                    // Add more context to error message
+                    if (!response.ok) {
+                        errorMsg += ` (HTTP ${response.status})`;
+                    }
+                    if (data.type) {
+                        errorMsg += ` [${data.type}]`;
+                    }
+                    throw new Error(errorMsg);
                 }
 
                 lastGeneratedData = data;
@@ -397,7 +405,9 @@
                 if (error.name === 'AbortError') {
                     showError('Generation timeout - took too long. Please try a simpler query.');
                 } else {
-                    showError('Error: ' + error.message);
+                    let fullError = 'Error: ' + error.message;
+                    console.error('Generation error details:', error);
+                    showError(fullError);
                 }
                 console.error('Generation error:', error);
             } finally {
