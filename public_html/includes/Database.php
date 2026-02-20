@@ -15,25 +15,24 @@ class Database {
      */
     public function initializeTables() {
         try {
-            // Pages table
+            // Pages table - now with slug for URL-friendly access
             $this->pdo->exec("CREATE TABLE IF NOT EXISTS pages (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                search_query VARCHAR(500) NOT NULL UNIQUE,
-                title VARCHAR(500) NOT NULL,
+                query VARCHAR(500) NOT NULL,
+                slug VARCHAR(500) UNIQUE NOT NULL,
+                title VARCHAR(255) NOT NULL,
                 description TEXT,
-                content LONGTEXT NOT NULL,
                 html_content LONGTEXT NOT NULL,
-                thumbnail_image VARCHAR(1000),
+                ai_provider VARCHAR(50),
+                ai_model VARCHAR(100),
+                view_count INT DEFAULT 0,
+                status VARCHAR(50) DEFAULT 'active',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                last_scan_date TIMESTAMP NULL,
-                relevance_score FLOAT DEFAULT 0,
-                view_count INT DEFAULT 0,
-                is_featured BOOLEAN DEFAULT FALSE,
-                status ENUM('active', 'inactive', 'archived') DEFAULT 'active',
-                FULLTEXT INDEX ft_query (search_query, title, description),
-                INDEX idx_created (created_at),
-                INDEX idx_updated (updated_at)
+                INDEX idx_query (query),
+                INDEX idx_slug (slug),
+                INDEX idx_status (status),
+                INDEX idx_created (created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
             
             // Search Results Cache
@@ -41,13 +40,13 @@ class Database {
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 page_id INT NOT NULL,
                 source_name VARCHAR(100),
-                source_url VARCHAR(1000),
-                title VARCHAR(500),
+                source_url VARCHAR(500),
+                title VARCHAR(255),
                 description TEXT,
-                image_url VARCHAR(1000),
-                author VARCHAR(200),
+                image_url VARCHAR(500),
+                author VARCHAR(100),
                 published_date DATETIME,
-                relevance_score FLOAT DEFAULT 0,
+                relevance_score FLOAT,
                 position_index INT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE,
@@ -55,59 +54,80 @@ class Database {
                 INDEX idx_source (source_name)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
             
-            // Page Elements (images, tables, diagrams, etc)
-            $this->pdo->exec("CREATE TABLE IF NOT EXISTS page_elements (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                page_id INT NOT NULL,
-                element_type ENUM('image', 'table', 'diagram', 'button', 'link', 'text', 'video') DEFAULT 'text',
-                element_data LONGTEXT NOT NULL,
-                position_index INT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE,
-                INDEX idx_page (page_id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-            
-            // Update Queue for weekly scans
-            $this->pdo->exec("CREATE TABLE IF NOT EXISTS update_queue (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                page_id INT NOT NULL,
-                scheduled_date DATETIME,
-                status ENUM('pending', 'processing', 'completed', 'failed') DEFAULT 'pending',
-                last_attempt DATETIME,
-                attempt_count INT DEFAULT 0,
-                error_message TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE,
-                INDEX idx_status (status),
-                INDEX idx_scheduled (scheduled_date)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-            
             // User Activity Tracking
-            $this->pdo->exec("CREATE TABLE IF NOT EXISTS user_activity (
+            $this->pdo->exec("CREATE TABLE IF NOT EXISTS activity (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 page_id INT,
-                search_query VARCHAR(500),
-                ip_address VARCHAR(45),
+                user_ip VARCHAR(45),
                 user_agent TEXT,
-                action_type ENUM('search', 'view', 'click') DEFAULT 'search',
+                action VARCHAR(50),
+                metadata JSON,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE SET NULL,
                 INDEX idx_page (page_id),
+                INDEX idx_action (action),
                 INDEX idx_created (created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
             
-            // Similar Pages mapping
-            $this->pdo->exec("CREATE TABLE IF NOT EXISTS similar_pages (
+            // Analytics Table
+            $this->pdo->exec("CREATE TABLE IF NOT EXISTS analytics (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 page_id INT NOT NULL,
-                similar_page_id INT NOT NULL,
-                similarity_score FLOAT DEFAULT 0,
+                daily_date DATE,
+                view_count INT DEFAULT 0,
+                unique_visitors INT DEFAULT 0,
+                avg_time_on_page INT DEFAULT 0,
+                bounce_rate FLOAT DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE,
-                FOREIGN KEY (similar_page_id) REFERENCES pages(id) ON DELETE CASCADE,
-                UNIQUE KEY unique_pages (page_id, similar_page_id),
-                INDEX idx_page (page_id)
+                UNIQUE KEY unique_daily (page_id, daily_date),
+                INDEX idx_page (page_id),
+                INDEX idx_date (daily_date)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            
+            // Recommendations Table
+            $this->pdo->exec("CREATE TABLE IF NOT EXISTS recommendations (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                page_id INT NOT NULL,
+                recommendation_type VARCHAR(50),
+                score FLOAT,
+                metadata JSON,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE,
+                INDEX idx_page (page_id),
+                INDEX idx_type (recommendation_type)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            
+            // Page Cache Table
+            $this->pdo->exec("CREATE TABLE IF NOT EXISTS page_cache (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                page_id INT NOT NULL,
+                cache_key VARCHAR(255) UNIQUE,
+                expires_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE,
+                INDEX idx_page (page_id),
+                INDEX idx_expires (expires_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            
+            // Settings Table
+            $this->pdo->exec("CREATE TABLE IF NOT EXISTS settings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                setting_key VARCHAR(100) UNIQUE NOT NULL,
+                setting_value LONGTEXT,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            
+            // Insert default settings if not exists
+            $this->pdo->exec("INSERT IGNORE INTO settings (setting_key, setting_value, description) VALUES
+                ('app_version', '2.0.0', 'Application version'),
+                ('max_pages', '10000', 'Maximum pages to store'),
+                ('cache_ttl', '604800', 'Cache time to live in seconds'),
+                ('enable_analytics', '1', 'Enable analytics tracking'),
+                ('enable_recommendations', '1', 'Enable recommendation engine')
+            ");
             
             return true;
         } catch (Exception $e) {

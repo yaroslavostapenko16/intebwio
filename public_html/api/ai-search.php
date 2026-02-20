@@ -167,20 +167,44 @@ try {
     // Step 5: Store page in database (if database available)
     error_log("Step 15: Starting database insert");
     $pageId = null;
+    $pageSlug = null;
     if (function_exists('class_exists')) {
         try {
-            error_log("Preparing INSERT statement");
+            // Generate URL-friendly slug from query
+            $pageSlug = strtolower(trim($normalizedQuery));
+            $pageSlug = preg_replace('/[^a-z0-9]+/', '-', $pageSlug);
+            $pageSlug = trim($pageSlug, '-');
+            
+            // Make slug unique by adding timestamp if needed
+            $baseSlug = $pageSlug;
+            $slugExists = true;
+            $counter = 1;
+            
+            while ($slugExists && $counter <= 10) {
+                $checkStmt = $pdo->prepare("SELECT id FROM pages WHERE slug = ?");
+                $checkStmt->execute([$pageSlug]);
+                $slugExists = $checkStmt->fetch() !== false;
+                
+                if ($slugExists) {
+                    // Add timestamp suffix to make unique
+                    $pageSlug = $baseSlug . '-' . substr(time(), -4) . '-' . $counter;
+                    $counter++;
+                }
+            }
+            
+            error_log("Preparing INSERT with slug: '$pageSlug'");
             $insertStmt = $pdo->prepare("
                 INSERT INTO pages (
-                    search_query, title, description, html_content, 
+                    query, slug, title, description, html_content, 
                     ai_provider, ai_model, view_count, status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, 1, 'active', NOW(), NOW())
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', NOW(), NOW())
             ");
             
-            error_log("Executing INSERT with: query='$normalizedQuery', title_len=" . strlen($title) . ", desc_len=" . strlen($description) . ", html_len=" . strlen($htmlContent));
+            error_log("Executing INSERT with: query='$normalizedQuery', slug='$pageSlug', title_len=" . strlen($title) . ", desc_len=" . strlen($description) . ", html_len=" . strlen($htmlContent));
             
             $insertStmt->execute([
                 $normalizedQuery,
+                $pageSlug,
                 $title,
                 substr($description, 0, 500),
                 $htmlContent,
@@ -189,7 +213,7 @@ try {
             ]);
             
             $pageId = $pdo->lastInsertId();
-            error_log("Step 16: Database insert successful, page_id: $pageId");
+            error_log("Step 16: Database insert successful, page_id: $pageId, slug: $pageSlug");
         } catch (Exception $dbError) {
             error_log("Database insert error: " . $dbError->getMessage());
             error_log("This is not critical - page is still generated, just not stored");
@@ -223,6 +247,8 @@ try {
         'success' => true,
         'message' => 'Full landing page generated successfully using Gemini AI',
         'page_id' => $pageId,
+        'page_slug' => $pageSlug ?? null,
+        'page_url' => $pageSlug ? ('/?q=' . urlencode($normalizedQuery) . '&slug=' . $pageSlug) : null,
         'is_new' => true,
         'query' => $searchQuery,
         'normalized_query' => $normalizedQuery,
@@ -241,7 +267,7 @@ try {
         ]
     ];
     
-    error_log("Step 21: Response data prepared, size: " . strlen(json_encode($responseData)) . " bytes");
+    error_log("Step 21: Response data prepared, page_url: " . ($pageSlug ? ('/?q=' . urlencode($normalizedQuery) . '&slug=' . $pageSlug) : 'N/A') . ", size: " . strlen(json_encode($responseData)) . " bytes");
     
     // Try to encode response, with fallback
     $jsonResponse = json_encode($responseData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -252,11 +278,12 @@ try {
             'success' => true,
             'message' => 'Page generated successfully (metadata only)',
             'page_id' => $pageId,
+            'page_slug' => $pageSlug ?? null,
+            'page_url' => $pageSlug ? ('/?q=' . urlencode($normalizedQuery) . '&slug=' . $pageSlug) : null,
             'is_new' => true,
             'query' => $searchQuery,
             'title' => $title,
             'description' => $description,
-            'redirect_to' => '/page.php?id=' . $pageId,
             'metadata' => $responseData['metadata']
         ]);
         error_log("Step 22: Using fallback response (metadata only)");

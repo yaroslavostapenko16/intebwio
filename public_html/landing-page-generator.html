@@ -400,7 +400,13 @@
                 lastGeneratedHTML = data.html || '';
 
                 displayPage(data);
-                showSuccess(`✓ Landing page generated successfully in ${data.metadata.generation_time_seconds}s`);
+                
+                // Show success with page URL
+                let successMsg = `✓ Landing page generated successfully in ${data.metadata.generation_time_seconds}s`;
+                if (data.page_url) {
+                    successMsg += `<br><a href="${data.page_url}" target="_blank" style="color: white; text-decoration: underline;">View Page →</a>`;
+                }
+                showSuccess(successMsg);
             } catch (error) {
                 if (error.name === 'AbortError') {
                     showError('Generation timeout - took too long. Please try a simpler query.');
@@ -422,6 +428,14 @@
             // Display metadata
             const metadata = data.metadata || {};
             const metadataHTML = `
+                <div class="meta-item">
+                    <div class="meta-label">Page URL</div>
+                    <div class="meta-value"><a href="${data.page_url}" target="_blank" style="color: #2563eb; text-decoration: none; word-break: break-all;">${data.page_url || 'N/A'}</a></div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Page ID</div>
+                    <div class="meta-value">${data.page_id || 'N/A'}</div>
+                </div>
                 <div class="meta-item">
                     <div class="meta-label">AI Provider</div>
                     <div class="meta-value">${metadata.ai_provider} (${metadata.ai_model})</div>
