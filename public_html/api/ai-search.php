@@ -18,6 +18,13 @@ require_once __DIR__ . '/../includes/AIService.php';
 require_once __DIR__ . '/../includes/AdvancedPageGenerator.php';
 
 try {
+    // Check if PDO is available before proceeding
+    if (!isset($pdo)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Database connection failed']);
+        exit;
+    }
+    
     // Accept both POST JSON and GET parameters
     $data = json_decode(file_get_contents('php://input'), true) ?? $_GET;
     
@@ -167,7 +174,8 @@ try {
     
     // Step 7: Return successful response with full page content
     http_response_code(201); // Created
-    echo json_encode([
+    
+    $responseData = [
         'success' => true,
         'message' => 'Full landing page generated successfully using Gemini AI',
         'page_id' => $pageId,
@@ -187,16 +195,49 @@ try {
             'content_length' => strlen($htmlContent),
             'content_words' => str_word_count(strip_tags($htmlContent))
         ]
-    ]);
+    ];
+    
+    // Try to encode response, with fallback
+    $jsonResponse = json_encode($responseData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($jsonResponse === false) {
+        // If JSON encoding fails, remove large HTML and try again
+        error_log("JSON encoding failed for full response, fallback to metadata-only response");
+        $jsonResponse = json_encode([
+            'success' => true,
+            'message' => 'Page generated successfully (metadata only)',
+            'page_id' => $pageId,
+            'is_new' => true,
+            'query' => $searchQuery,
+            'title' => $title,
+            'description' => $description,
+            'redirect_to' => '/page.php?id=' . $pageId,
+            'metadata' => $responseData['metadata']
+        ]);
+    }
+    
+    echo $jsonResponse;
     
     
 } catch (Exception $e) {
     error_log("Search API error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+    
     http_response_code(500);
-    echo json_encode([
+    
+    // Provide detailed error message for debugging
+    $errorResponse = [
         'success' => false,
-        'message' => 'Server error: ' . $e->getMessage()
-    ]);
+        'message' => 'Server error: ' . $e->getMessage(),
+        'type' => get_class($e),
+        'timestamp' => date('Y-m-d H:i:s')
+    ];
+    
+    // Include file/line info in debug mode
+    if (ini_get('display_errors')) {
+        $errorResponse['file'] = $e->getFile();
+        $errorResponse['line'] = $e->getLine();
+    }
+    
+    echo json_encode($errorResponse);
 }
 
 ?>
