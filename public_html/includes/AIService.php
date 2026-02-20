@@ -22,6 +22,9 @@ class AIService {
      */
     public function generatePageContent($searchQuery, $aggregatedContent = []) {
         try {
+            error_log("AI Content Generation started for query: " . $searchQuery);
+            error_log("Using AI Provider: " . $this->apiProvider);
+            
             $prompt = $this->buildPrompt($searchQuery, $aggregatedContent);
             
             switch ($this->apiProvider) {
@@ -32,10 +35,11 @@ class AIService {
                 case 'anthropic':
                     return $this->callAnthropic($prompt);
                 default:
+                    error_log("Unknown AI provider: " . $this->apiProvider . ", using fallback");
                     return $this->generateFallbackContent($searchQuery, $aggregatedContent);
             }
         } catch (Exception $e) {
-            error_log("AI Generation error: " . $e->getMessage());
+            error_log("AI Generation error: " . $e->getMessage() . " | Stack: " . $e->getTraceAsString());
             return null;
         }
     }
@@ -80,6 +84,7 @@ PROMPT;
      */
     private function callOpenAI($prompt) {
         if (!$this->apiKey) {
+            error_log("OpenAI API Error: No API key provided");
             return null;
         }
         
@@ -111,18 +116,36 @@ PROMPT;
             ],
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_TIMEOUT => 60
+            CURLOPT_TIMEOUT => 60,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2
         ]);
         
         $response = curl_exec($ch);
+        $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         
-        if ($httpCode === 200) {
-            $result = json_decode($response, true);
-            return $result['choices'][0]['message']['content'] ?? null;
+        // Log curl errors
+        if ($curlError) {
+            error_log("OpenAI API cURL Error: " . $curlError);
+            return null;
         }
         
+        if ($httpCode === 200) {
+            $result = json_decode($response, true);
+            if (isset($result['choices']) && !empty($result['choices'])) {
+                $text = $result['choices'][0]['message']['content'] ?? null;
+                if ($text) {
+                    return $text;
+                }
+            }
+            error_log("OpenAI API: Invalid response structure - " . substr($response, 0, 500));
+            return null;
+        }
+        
+        // Log error responses
+        error_log("OpenAI API Error - HTTP $httpCode: " . substr($response, 0, 500));
         return null;
     }
     
@@ -131,10 +154,19 @@ PROMPT;
      */
     private function callGemini($prompt) {
         if (!$this->apiKey) {
+            error_log("Gemini API Error: No API key provided");
             return null;
         }
         
-        $url = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=' . $this->apiKey;
+        // Check for placeholder or invalid key
+        if (strpos($this->apiKey, 'YOUR_') !== false || strlen($this->apiKey) < 10) {
+            error_log("Gemini API Error: Invalid API key format");
+            return null;
+        }
+        
+        // Use the model from configuration
+        $model = $this->model ?: 'gemini-pro';
+        $url = 'https://generativelanguage.googleapis.com/v1/models/' . $model . ':generateContent?key=' . $this->apiKey;
         
         $data = [
             'contents' => [
@@ -153,16 +185,48 @@ PROMPT;
             CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_TIMEOUT => 60
+            CURLOPT_TIMEOUT => 60,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2
         ]);
         
         $response = curl_exec($ch);
+        $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         
+        // Log curl errors
+        if ($curlError) {
+            error_log("Gemini API cURL Error: " . $curlError);
+            return null;
+        }
+        
         if ($httpCode === 200) {
             $result = json_decode($response, true);
-            return $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            if (isset($result['candidates']) && !empty($result['candidates'])) {
+                $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                if ($text) {
+                    return $text;
+                }
+            }
+            error_log("Gemini API: Invalid response structure - " . substr($response, 0, 500));
+            return null;
+        }
+        
+        // Log error responses with more detail
+        $responseData = json_decode($response, true);
+        $errorMsg = "Gemini API Error - HTTP $httpCode";
+        if (isset($responseData['error']['message'])) {
+            $errorMsg .= ": " . $responseData['error']['message'];
+        }
+        error_log($errorMsg);
+        
+        // Special handling for specific errors
+        if ($httpCode === 403 && isset($responseData['error']['message'])) {
+            if (strpos($responseData['error']['message'], 'leaked') !== false) {
+                error_log("WARNING: Gemini API key has been reported as leaked and is disabled!");
+                error_log("Please generate a new API key at: https://aistudio.google.com/apikey");
+            }
         }
         
         return null;
@@ -173,6 +237,7 @@ PROMPT;
      */
     private function callAnthropic($prompt) {
         if (!$this->apiKey) {
+            error_log("Anthropic API Error: No API key provided");
             return null;
         }
         
@@ -200,18 +265,36 @@ PROMPT;
             ],
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_TIMEOUT => 60
+            CURLOPT_TIMEOUT => 60,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2
         ]);
         
         $response = curl_exec($ch);
+        $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         
-        if ($httpCode === 200) {
-            $result = json_decode($response, true);
-            return $result['content'][0]['text'] ?? null;
+        // Log curl errors
+        if ($curlError) {
+            error_log("Anthropic API cURL Error: " . $curlError);
+            return null;
         }
         
+        if ($httpCode === 200) {
+            $result = json_decode($response, true);
+            if (isset($result['content']) && !empty($result['content'])) {
+                $text = $result['content'][0]['text'] ?? null;
+                if ($text) {
+                    return $text;
+                }
+            }
+            error_log("Anthropic API: Invalid response structure - " . substr($response, 0, 500));
+            return null;
+        }
+        
+        // Log error responses
+        error_log("Anthropic API Error - HTTP $httpCode: " . substr($response, 0, 500));
         return null;
     }
     
@@ -252,7 +335,7 @@ PROMPT;
     private function getModelForProvider($provider) {
         $models = [
             'openai' => 'gpt-4-turbo',
-            'gemini' => 'gemini-pro',
+            'gemini' => 'gemini-1.5-pro',  // Updated from gemini-pro to gemini-1.5-pro
             'anthropic' => 'claude-3-sonnet-20240229'
         ];
         return $models[$provider] ?? 'gpt-4-turbo';
