@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Intebwio - AI Landing Page Generator with Gemini API">
+    <title>Intebwio - AI Landing Page Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4285f4;
+            --secondary: #34a853;
+            --accent: #ea4335;
+            --light: #f8f9fa;
+            --dark: #202124;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e8eaed 100%);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            font-size: 1.2em;
+            color: #5f6368;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #dadce0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+        }
+
+        button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid var(--primary);
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #pageContent {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .page-header h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .page-body {
+            padding: 40px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .metadata {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .meta-item {
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.85em;
+            text-transform: uppercase;
+        }
+
+        .meta-value {
+            color: var(--dark);
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+
+        .error {
+            background: #ffebee;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success {
+            background: #f1f8e9;
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            background: var(--light);
+            color: var(--dark);
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #dadce0;
+        }
+
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .example-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid #f0f0f0;
+            transition: all 0.2s;
+        }
+
+        .example-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.15);
+        }
+
+        .example-card strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Intebwio</h1>
+            <p class="tagline">AI-Powered Landing Page Generator with Gemini</p>
+            <p style="color: #5f6368; margin-bottom: 20px;">Generate unlimited professional landing pages using Google's Gemini API</p>
+            
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Enter a topic (e.g., 'Artificial Intelligence', 'Climate Change', 'Quantum Computing')"
+                    autocomplete="off"
+                >
+                <button onclick="generatePage()">Generate Page</button>
+            </div>
+
+            <div class="info-box">
+                ℹ️ <strong>New Feature:</strong> No limits on pages per topic! Generate as many landing pages as you want for any topic using the Gemini AI API.
+            </div>
+
+            <div class="controls">
+                <button class="btn-secondary" onclick="togglePreview()">Preview Mode</button>
+                <button class="btn-secondary" onclick="downloadPageHTML()">Download HTML</button>
+                <button class="btn-secondary" onclick="copyPageHTML()">Copy HTML</button>
+            </div>
+
+            <div class="examples">
+                <div class="example-card" onclick="generateWithQuery('Machine Learning')">
+                    <strong>🤖 Machine Learning</strong>
+                    <small>AI and ML technologies</small>
+                </div>
+                <div class="example-card" onclick="generateWithQuery('Climate Change')">
+                    <strong>🌍 Climate Change</strong>
+                    <small>Environmental science</small>
+                </div>
+                <div class="example-card" onclick="generateWithQuery('Quantum Computing')">
+                    <strong>⚛️ Quantum Computing</strong>
+                    <small>Advanced computing</small>
+                </div>
+                <div class="example-card" onclick="generateWithQuery('Space Exploration')">
+                    <strong>🛸 Space Exploration</strong>
+                    <small>Space science and missions</small>
+                </div>
+                <div class="example-card" onclick="generateWithQuery('Blockchain Technology')">
+                    <strong>⛓️ Blockchain</strong>
+                    <small>Cryptography and distributed systems</small>
+                </div>
+                <div class="example-card" onclick="generateWithQuery('Renewable Energy')">
+                    <strong>⚡ Renewable Energy</strong>
+                    <small>Sustainable energy sources</small>
+                </div>
+            </div>
+        </header>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating your landing page with Gemini AI...</p>
+            <p style="font-size: 0.9em; color: #5f6368; margin-top: 10px;">This may take 10-30 seconds</p>
+        </div>
+
+        <div class="error" id="error"></div>
+        <div class="success" id="success"></div>
+
+        <div id="pageContent">
+            <div class="page-header">
+                <h2 id="pageTitle">Page Title</h2>
+                <p id="pageDescription">Page description</p>
+            </div>
+
+            <div class="page-body">
+                <div class="metadata" id="metadata"></div>
+                <div id="htmlContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastGeneratedHTML = '';
+        let lastGeneratedData = {};
+
+        async function generatePage() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                showError('Please enter a topic');
+                return;
+            }
+            await generateWithQuery(query);
+        }
+
+        async function generateWithQuery(query) {
+            document.getElementById('searchInput').value = query;
+            showLoading(true);
+            hideError();
+            hideSuccess();
+
+            try {
+                const response = await fetch('/api/ai-search.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        use_existing: false
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to generate page');
+                }
+
+                lastGeneratedData = data;
+                lastGeneratedHTML = data.html || '';
+
+                displayPage(data);
+                showSuccess(`✓ Landing page generated successfully in ${data.metadata.generation_time_seconds}s`);
+            } catch (error) {
+                showError('Error: ' + error.message);
+                console.error('Generation error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayPage(data) {
+            document.getElementById('pageTitle').textContent = data.title || data.query;
+            document.getElementById('pageDescription').textContent = data.description || 'AI-generated page';
+
+            // Display metadata
+            const metadata = data.metadata || {};
+            const metadataHTML = `
+                <div class="meta-item">
+                    <div class="meta-label">AI Provider</div>
+                    <div class="meta-value">${metadata.ai_provider} (${metadata.ai_model})</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Generation Time</div>
+                    <div class="meta-value">${metadata.generation_time_seconds}s</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Content Length</div>
+                    <div class="meta-value">${metadata.content_length} characters</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Word Count</div>
+                    <div class="meta-value">${metadata.content_words} words</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Sources Used</div>
+                    <div class="meta-value">${metadata.sources_count} sources</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Generated</div>
+                    <div class="meta-value">${metadata.timestamp}</div>
+                </div>
+            `;
+            document.getElementById('metadata').innerHTML = metadataHTML;
+
+            // Display HTML content
+            if (data.html) {
+                document.getElementById('htmlContent').innerHTML = data.html;
+            }
+
+            document.getElementById('pageContent').style.display = 'block';
+            window.scrollTo({ top: document.getElementById('pageContent').offsetTop - 100, behavior: 'smooth' });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const successEl = document.getElementById('success');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            setTimeout(() => hideSuccess(), 5000);
+        }
+
+        function hideSuccess() {
+            document.getElementById('success').style.display = 'none';
+        }
+
+        function downloadPageHTML() {
+            if (!lastGeneratedHTML) {
+                showError('No page generated yet');
+                return;
+            }
+
+            const element = document.createElement('a');
+            const file = new Blob([lastGeneratedHTML], { type: 'text/html' });
+            element.href = URL.createObjectURL(file);
+            element.download = (lastGeneratedData.title || 'page').toLowerCase().replace(/\s+/g, '-') + '.html';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            showSuccess('✓ HTML downloaded');
+        }
+
+        function copyPageHTML() {
+            if (!lastGeneratedHTML) {
+                showError('No page generated yet');
+                return;
+            }
+
+            navigator.clipboard.writeText(lastGeneratedHTML).then(() => {
+                showSuccess('✓ HTML copied to clipboard');
+            }).catch(() => {
+                showError('Failed to copy to clipboard');
+            });
+        }
+
+        function togglePreview() {
+            const content = document.getElementById('htmlContent');
+            const current = content.style.whiteSpace || 'normal';
+            content.style.whiteSpace = current === 'pre' ? 'normal' : 'pre';
+        }
+
+        // Allow pressing Enter to generate
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generatePage();
+            }
+        });
+
+        // Show info on load
+        window.addEventListener('load', () => {
+            showSuccess('✓ Ready! Enter a topic and generate your first landing page.');
+            setTimeout(hideSuccess, 3000);
+        });
+    </script>
+</body>
+</html>
