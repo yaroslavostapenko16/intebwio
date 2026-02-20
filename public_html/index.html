@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Intebwio - AI-powered web browser that generates and caches intelligent landing pages with curated content from the best sources.">
-    <meta name="keywords" content="web browser, search, content aggregation, AI, information aggregation">
-    <title>Intebwio - AI-Powered Web Browser & Content Aggregator</title>
+    <meta name="description" content="Intebwio - AI-Powered Landing Page Generator with Beautiful Visualizations">
+    <title>Intebwio - AI Page Generator with Database Storage</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -14,15 +14,16 @@
         }
 
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #64748b;
-            --accent-color: #f59e0b;
-            --background: #f8fafc;
-            --surface: #ffffff;
-            --text-dark: #1e293b;
-            --text-light: #64748b;
+            --primary: #2563eb;
+            --secondary: #7c3aed;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
             --border: #e2e8f0;
-            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --text: #334155;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         html {
@@ -31,105 +32,123 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--background) 0%, #e0e7ff 100%);
-            color: var(--text-dark);
+            line-height: 1.6;
+            color: var(--text);
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+            min-height: 100vh;
+        }
+
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0 20px;
         }
 
-        /* Header/Logo Section */
+        /* Header */
         header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 60px 20px;
             text-align: center;
-            padding: 60px 20px 20px;
-            margin-bottom: 40px;
-        }
-
-        .logo {
-            font-size: 48px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary-color), #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 16px;
-            letter-spacing: -2px;
-        }
-
-        .subtitle {
-            font-size: 18px;
-            color: var(--text-light);
-            margin-bottom: 24px;
-            font-weight: 500;
-        }
-
-        .tagline {
-            font-size: 14px;
-            color: var(--secondary-color);
-            margin-top: 8px;
-        }
-
-        /* Search Section */
-        .search-section {
-            background: var(--surface);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 20px 25px rgba(0,0,0,0.08);
-            margin-bottom: 60px;
             position: relative;
             overflow: hidden;
         }
 
-        .search-section::before {
+        header::before {
             content: '';
             position: absolute;
-            top: 0;
-            right: 0;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(20px); }
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            letter-spacing: -1px;
+        }
+
+        .tagline {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            opacity: 0.95;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            margin: 10px auto 0;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 10;
+            margin-top: -30px;
         }
 
         .search-container {
-            position: relative;
-            z-index: 2;
+            max-width: 700px;
+            margin: 0 auto;
         }
 
-        #searchForm {
+        .search-form {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
-        #searchInput {
+        .search-input {
             flex: 1;
-            padding: 16px 20px;
+            padding: 15px 20px;
             border: 2px solid var(--border);
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 1rem;
             transition: all 0.3s ease;
-            background: var(--surface);
-            color: var(--text-dark);
         }
 
-        #searchInput:focus {
+        .search-input:focus {
             outline: none;
-            border-color: var(--primary-color);
+            border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .search-btn {
-            padding: 16px 32px;
-            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            padding: 15px 30px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -141,122 +160,129 @@
 
         .search-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
         }
 
         .search-btn:active {
             transform: translateY(0);
         }
 
-        /* Suggestions */
-        #suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 32px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-top: none;
-            border-radius: 0 0 12px 12px;
-            max-height: 300px;
-            overflow-y: auto;
-            display: none;
-            z-index: 10;
-        }
-
-        #suggestions.visible {
-            display: block;
-        }
-
-        .suggestion-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-dark);
-        }
-
-        .suggestion-item:hover {
-            background: var(--background);
-        }
-
-        .suggestion-item:last-child {
-            border-bottom: none;
-        }
-
         .search-hint {
-            font-size: 13px;
-            color: var(--secondary-color);
+            font-size: 0.85rem;
+            color: #666;
             text-align: center;
         }
 
-        /* Features Section */
-        .features {
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-left: 4px solid var(--primary);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: #1e40af;
+        }
+
+        .info-box strong {
+            color: var(--primary);
+        }
+
+        /* Status */
+        .status-message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-message.success {
+            background: #f1f8e9;
+            color: #558b2f;
+            border-left: 4px solid var(--success);
+        }
+
+        .status-message.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid var(--danger);
+        }
+
+        .status-message.loading {
+            background: #f3f4f6;
+            color: #1f2937;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Examples */
+        .examples {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-top: 60px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
         }
 
-        .feature {
-            background: var(--surface);
-            padding: 32px;
-            border-radius: 12px;
-            text-align: center;
+        .example-btn {
+            background: white;
+            border: 2px solid var(--border);
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
             transition: all 0.3s ease;
-            border: 1px solid transparent;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--dark);
         }
 
-        .feature:hover {
-            transform: translateY(-8px);
-            border-color: var(--primary-color);
-            box-shadow: 0 20px 25px rgba(0,0,0,0.08);
+        .example-btn:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+            transform: translateY(-2px);
         }
 
-        .feature-icon {
-            font-size: 36px;
-            margin-bottom: 16px;
-        }
-
-        .feature h3 {
-            font-size: 18px;
-            margin-bottom: 12px;
-            color: var(--text-dark);
-        }
-
-        .feature p {
-            color: var(--text-light);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        /* Latest Pages Section */
-        .latest-section {
-            margin-top: 80px;
-            padding: 60px 0;
-            border-top: 2px solid var(--border);
+        /* Recent Pages Section */
+        .recent-section {
+            margin: 60px 0;
         }
 
         .section-title {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 40px;
-            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
         }
 
         .pages-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
         .page-card {
-            background: var(--surface);
+            background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
-            cursor: pointer;
             text-decoration: none;
             color: inherit;
             display: flex;
@@ -265,19 +291,36 @@
 
         .page-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 20px 25px rgba(0,0,0,0.12);
+            box-shadow: var(--shadow);
         }
 
         .page-card-image {
-            width: 100%;
-            height: 180px;
-            background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+            height: 150px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 3rem;
             color: white;
-            font-size: 24px;
-            font-weight: bold;
+            font-weight: 700;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-card-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .page-card:hover .page-card-image::after {
+            opacity: 1;
         }
 
         .page-card-content {
@@ -285,245 +328,500 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
         }
 
         .page-card-title {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
             margin-bottom: 8px;
+            text-transform: capitalize;
         }
 
         .page-card-meta {
-            font-size: 13px;
-            color: var(--text-light);
-            margin-top: auto;
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 10px;
         }
 
-        /* Loading State */
-        #loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
             display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top-color: white;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
             border-radius: 50%;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Error Message */
-        .error-message {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #ef4444;
+        /* Stats */
+        .stats-bar {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 40px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
         }
 
         /* Footer */
         footer {
-            margin-top: 100px;
+            background: linear-gradient(135deg, var(--dark), #0f172a);
+            color: white;
             padding: 40px 20px;
+            margin-top: auto;
             text-align: center;
-            color: var(--text-light);
-            border-top: 2px solid var(--border);
         }
 
         footer p {
-            margin-bottom: 8px;
+            margin: 5px 0;
         }
 
         footer a {
-            color: var(--primary-color);
+            color: white;
             text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
         }
 
         footer a:hover {
-            text-decoration: underline;
+            opacity: 1;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            header {
-                padding: 40px 20px 20px;
-                margin-bottom: 20px;
-            }
-
             .logo {
-                font-size: 36px;
+                font-size: 2rem;
             }
 
-            .subtitle {
-                font-size: 16px;
+            .tagline {
+                font-size: 1.1rem;
             }
 
-            .search-section {
-                padding: 24px;
-                margin-bottom: 40px;
-            }
-
-            #searchForm {
+            .search-form {
                 flex-direction: column;
             }
 
-            .search-btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .features {
-                grid-template-columns: 1fr;
-            }
-
             .section-title {
-                font-size: 24px;
+                font-size: 1.5rem;
+            }
+
+            header {
+                padding: 40px 20px;
+            }
+
+            .search-section {
+                margin-top: -15px;
             }
 
             .pages-grid {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div id="loading">
-        <div class="spinner"></div>
-    </div>
-
-    <div class="container">
+    <div class="page-wrapper">
+        <!-- Header -->
         <header>
-            <div class="logo">Intebwio</div>
-            <p class="subtitle">AI-Powered Content Aggregation Platform</p>
-            <p class="tagline">Search once, access curated information forever</p>
+            <div class="container">
+                <div class="logo">✨ Intebwio</div>
+                <p class="tagline">AI-Powered Landing Page Generator</p>
+                <p class="subtitle">Generate beautiful, information-rich pages with AI. All pages are automatically stored and accessible.</p>
+            </div>
         </header>
 
-        <div class="search-section">
-            <div class="search-container">
-                <form id="searchForm">
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        placeholder="Search for any topic... (e.g., 'artificial intelligence', 'quantum computing', 'climate change')"
-                        autocomplete="off"
-                        required
-                    >
-                    <button type="submit" class="search-btn">
-                        <span>🔍</span>
-                        <span>Search</span>
-                    </button>
-                </form>
-                <div id="suggestions"></div>
-                <p class="search-hint">Tip: Press Ctrl+K to focus the search bar anytime</p>
+        <!-- Search Section -->
+        <div class="container" style="margin-top: 40px; margin-bottom: 40px;">
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>New Feature:</strong> Unlimited page generation with beautiful visualizations, timelines, and comparison charts!
+                    </div>
+
+                    <div id="statusMessage" class="status-message"></div>
+
+                    <form id="generateForm" class="search-form">
+                        <input 
+                            type="text" 
+                            id="topicInput" 
+                            class="search-input"
+                            placeholder="Enter any topic (e.g., 'Artificial Intelligence', 'Renewable Energy')"
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            <span>Generate</span>
+                        </button>
+                    </form>
+
+                    <p class="search-hint">💡 Tip: Our AI generates comprehensive pages with visualizations, timelines, and beautiful layouts</p>
+
+                    <div class="examples">
+                        <button type="button" class="example-btn" onclick="generateTopic('Artificial Intelligence')">
+                            🤖 Artificial Intelligence
+                        </button>
+                        <button type="button" class="example-btn" onclick="generateTopic('climate change')">
+                            🌍 Climate Change
+                        </button>
+                        <button type="button" class="example-btn" onclick="generateTopic('quantum computing')">
+                            ⚛️ Quantum Computing
+                        </button>
+                        <button type="button" class="example-btn" onclick="generateTopic('blockchain technology')">
+                            ⛓️ Blockchain
+                        </button>
+                        <button type="button" class="example-btn" onclick="generateTopic('space exploration')">
+                            🛸 Space Exploration
+                        </button>
+                        <button type="button" class="example-btn" onclick="generateTopic('renewable energy')">
+                            ⚡ Renewable Energy
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loadingMessage">
+                <div class="spinner"></div>
+                <p>Generating your beautiful AI page...</p>
+                <p style="font-size: 0.9rem; color: #999; margin-top: 10px;">This typically takes 30-60 seconds</p>
             </div>
         </div>
 
-        <div style="margin-bottom: 40px;">
-            <div class="features">
-                <div class="feature">
-                    <div class="feature-icon">📚</div>
-                    <h3>Comprehensive</h3>
-                    <p>Aggregates content from multiple authoritative sources automatically</p>
+        <!-- Stats Bar -->
+        <div class="container">
+            <div class="stats-bar">
+                <div class="stat">
+                    <div class="stat-value" id="totalPages">0</div>
+                    <div class="stat-label">Pages Generated</div>
                 </div>
-                <div class="feature">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Lightning Fast</h3>
-                    <p>Cached pages load instantly. No regeneration needed for existing topics</p>
+                <div class="stat">
+                    <div class="stat-value" id="totalViews">0</div>
+                    <div class="stat-label">Total Views</div>
                 </div>
-                <div class="feature">
-                    <div class="feature-icon">🔄</div>
-                    <h3>Auto-Updated</h3>
-                    <p>Pages update automatically once weekly to keep information current</p>
+                <div class="stat">
+                    <div class="stat-value">∞</div>
+                    <div class="stat-label">Unlimited Capacity</div>
                 </div>
-                <div class="feature">
-                    <div class="feature-icon">🎨</div>
-                    <h3>Beautiful Design</h3>
-                    <p>Responsive interface with images, tables, diagrams, and rich formatting</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Persistent</h3>
-                    <p>Your generated pages never expire. Access them anytime you want</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">✨</div>
-                    <h3>AI-Powered</h3>
-                    <p>Intelligent relevance scoring and similarity detection for smart caching</p>
+                <div class="stat">
+                    <div class="stat-value">✓</div>
+                    <div class="stat-label">Always Stored</div>
                 </div>
             </div>
         </div>
 
-        <div class="latest-section">
-            <h2 class="section-title">Latest Generated Pages</h2>
-            <div class="pages-grid" id="pagesGrid">
-                <div style="text-align: center; color: var(--text-light); padding: 40px;">
-                    <p>Start by searching for a topic to generate your first page</p>
+        <!-- Recent Pages Section -->
+        <div class="container">
+            <section class="recent-section">
+                <h2 class="section-title">
+                    <i class="fas fa-sparkles"></i>
+                    Recently Generated Pages
+                </h2>
+
+                <div id="pagesContainer" class="pages-grid">
+                    <div class="empty-state">
+                        <i class="fas fa-book-open"></i>
+                        <h3>No Pages Yet</h3>
+                        <p>Generate your first AI-powered page to get started</p>
+                    </div>
                 </div>
-            </div>
+            </section>
         </div>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <p><strong>Intebwio</strong> - AI-Powered Page Generation Platform</p>
+                <p>Generate beautiful, information-rich pages with diagrams and visualizations</p>
+                <p>&copy; 2026 Intebwio. Powered by Google Gemini AI.</p>
+            </div>
+        </footer>
     </div>
 
-    <footer>
-        <p>&copy; 2026 Intebwio. All rights reserved.</p>
-        <p>
-            <a href="#privacy">Privacy Policy</a> | 
-            <a href="#terms">Terms of Service</a> | 
-            <a href="#contact">Contact Us</a>
-        </p>
-        <p>Powered by AI-driven content aggregation and intelligent caching</p>
-    </footer>
-
-    <script src="/js/intebwio.js"></script>
     <script>
-        // Load latest pages
-        fetch('/api/latest.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.pages && data.pages.length > 0) {
-                    const grid = document.getElementById('pagesGrid');
-                    grid.innerHTML = '';
-                    
-                    data.pages.forEach(page => {
-                        const card = document.createElement('a');
-                        card.href = '/page.php?id=' + page.id;
-                        card.className = 'page-card';
-                        
-                        const firstLetter = page.title.charAt(0).toUpperCase();
-                        const colors = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#10b981'];
-                        const color = colors[Math.floor(Math.random() * colors.length)];
-                        
-                        card.innerHTML = `
-                            <div class="page-card-image" style="background: linear-gradient(135deg, ${color}, ${color}99);">
-                                ${firstLetter}
-                            </div>
-                            <div class="page-card-content">
-                                <div class="page-card-title">${page.title}</div>
-                                <div class="page-card-meta">
-                                    👁️ ${page.view_count || 0} views • ${new Date(page.created_at).toLocaleDateString()}
-                                </div>
-                            </div>
-                        `;
-                        
-                        grid.appendChild(card);
-                    });
+        // Configuration
+        const API_BASE = '/api/';
+        const TIMEOUT = 180000; // 3 minutes
+
+        // State
+        let currentPages = [];
+        let stats = { total: 0, views: 0 };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPageStatistics();
+            loadRecentPages();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            const form = document.getElementById('generateForm');
+            form.addEventListener('submit', handleGeneratePage);
+
+            const topicInput = document.getElementById('topicInput');
+            topicInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    form.dispatchEvent(new Event('submit'));
                 }
-            })
-            .catch(error => console.error('Error loading pages:', error));
+            });
+
+            // Keyboard shortcut: Ctrl+K to focus search
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    topicInput.focus();
+                }
+            });
+        }
+
+        // Generate topic from button click
+        function generateTopic(topic) {
+            document.getElementById('topicInput').value = topic;
+            handleGeneratePage(new Event('submit'));
+        }
+
+        // Handle page generation
+        function handleGeneratePage(e) {
+            e.preventDefault();
+
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) {
+                showStatus('Please enter a topic', 'error');
+                return;
+            }
+
+            generatePage(topic);
+        }
+
+        // Generate page via API
+        async function generatePage(topic) {
+            showLoading(true);
+            hideStatus();
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
+                const response = await fetch(API_BASE + 'generate-beautiful-page.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: topic }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                // Check if response is valid
+                if (!response.ok) {
+                    const text = await response.text();
+                    try {
+                        const errorData = JSON.parse(text);
+                        showStatus('Error: ' + (errorData.message || 'Unknown error'), 'error');
+                    } catch {
+                        showStatus('Server error (' + response.status + '): ' + text.substring(0, 100), 'error');
+                    }
+                    showLoading(false);
+                    return;
+                }
+
+                // Parse JSON response
+                let data;
+                const responseText = await response.text();
+                
+                if (!responseText) {
+                    showStatus('Empty response from server', 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    showStatus('JSON parsing error: ' + parseError.message, 'error');
+                    console.error('Response text:', responseText.substring(0, 200));
+                    showLoading(false);
+                    return;
+                }
+
+                if (data.success) {
+                    // Store the generated page
+                    if (data.page_id) {
+                        // Redirect to view generated page
+                        window.location.href = '/page.php?id=' + data.page_id;
+                    } else {
+                        // Fallback: show the HTML in a new window
+                        const newWindow = window.open();
+                        newWindow.document.write(data.html);
+                        newWindow.document.close();
+                    }
+
+                    showStatus(`✓ Page generated in ${data.metadata.generation_time_seconds}s`, 'success');
+                    loadRecentPages();
+                    loadPageStatistics();
+                } else {
+                    showStatus('Error: ' + data.message, 'error');
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    showStatus('Generation timeout - took too long', 'error');
+                } else {
+                    showStatus('Error: ' + error.message, 'error');
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Load statistics
+        async function loadPageStatistics() {
+            try {
+                const response = await fetch(API_BASE + 'latest.php?limit=100');
+                const data = await response.json();
+
+                if (data.success && data.pages) {
+                    stats.total = data.pages.length;
+                    stats.views = data.pages.reduce((sum, p) => sum + (p.view_count || 0), 0);
+
+                    document.getElementById('totalPages').textContent = stats.total;
+                    document.getElementById('totalViews').textContent = stats.views.toLocaleString();
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load recent pages
+        async function loadRecentPages() {
+            try {
+                const response = await fetch(API_BASE + 'latest.php?limit=9');
+                const data = await response.json();
+
+                const container = document.getElementById('pagesContainer');
+
+                if (data.success && data.pages && data.pages.length > 0) {
+                    container.innerHTML = '';
+                    currentPages = data.pages;
+
+                    data.pages.forEach(page => {
+                        const card = createPageCard(page);
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <i class="fas fa-book-open"></i>
+                            <h3>No Pages Yet</h3>
+                            <p>Generate your first AI-powered page to get started</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading pages:', error);
+            }
+        }
+
+        // Create page card
+        function createPageCard(page) {
+            const card = document.createElement('a');
+            card.href = '/page.php?id=' + page.id;
+            card.className = 'page-card';
+
+            const firstLetter = (page.title || 'A')[0].toUpperCase();
+            const colors = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#10b981'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+
+            const dateObj = new Date(page.created_at);
+            const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: dateObj.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined 
+            });
+
+            card.innerHTML = `
+                <div class="page-card-image" style="background: linear-gradient(135deg, ${color}, ${color}99);">
+                    ${firstLetter}
+                </div>
+                <div class="page-card-content">
+                    <div class="page-card-title">${page.title || 'Untitled'}</div>
+                    <div class="page-card-meta">
+                        <span>👁️ ${page.view_count || 0} views</span>
+                        <span>📅 ${formattedDate}</span>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Show/hide loading
+        function showLoading(show) {
+            document.getElementById('loadingMessage').style.display = show ? 'block' : 'none';
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = 'status-message ' + type;
+            statusEl.style.display = 'block';
+
+            if (type === 'success' || type === 'error') {
+                setTimeout(hideStatus, 5000);
+            }
+        }
+
+        // Hide status message
+        function hideStatus() {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.style.display = 'none';
+        }
     </script>
 </body>
 </html>
