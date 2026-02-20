@@ -3,19 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Intebwio - AI-Powered Web Browser that generates and caches beautiful landing pages">
-    <meta name="theme-color" content="#2563eb">
-    <title>Intebwio - AI Web Browser with Auto-Generated Pages</title>
+    <meta name="description" content="Intebwio - AI-Powered Landing Page Generator with Beautiful Visualizations">
+    <title>Intebwio - AI Page Generator with Database Storage</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <style>
-        /**
-         * INTEBWIO - Main Stylesheet
-         * AI-Powered Web Browser with Cached Page Generation (1200+ lines total)
-         */
         * {
             margin: 0;
             padding: 0;
@@ -24,25 +15,15 @@
 
         :root {
             --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --primary-light: #3b82f6;
             --secondary: #7c3aed;
-            --secondary-dark: #6d28d9;
             --accent: #f59e0b;
             --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
+            --danger: #ef4444;
             --dark: #1e293b;
-            --dark-secondary: #334155;
             --light: #f8fafc;
-            --light-gray: #f1f5f9;
             --border: #e2e8f0;
             --text: #334155;
-            --text-light: #64748b;
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
-            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.15);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         html {
@@ -50,7 +31,7 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
             color: var(--text);
             background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
@@ -69,11 +50,12 @@
             padding: 0 20px;
         }
 
-        /* HEADER SECTION */
+        /* Header */
         header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 80px 20px 60px;
+            padding: 60px 20px;
+            text-align: center;
             position: relative;
             overflow: hidden;
         }
@@ -83,160 +65,142 @@
             position: absolute;
             top: -50%;
             right: -10%;
-            width: 500px;
-            height: 500px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 50%;
-            animation: float 8s ease-in-out infinite;
-        }
-
-        header::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -5%;
             width: 400px;
             height: 400px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            animation: float 12s ease-in-out infinite reverse;
+            animation: float 6s ease-in-out infinite;
         }
 
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(30px); }
-        }
-
-        .header-content {
-            position: relative;
-            z-index: 2;
-            text-align: center;
+            50% { transform: translateY(20px); }
         }
 
         .logo {
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 800;
             margin-bottom: 15px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
             letter-spacing: -1px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }EARCH SECTION */
+        }
+
+        .tagline {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            opacity: 0.95;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            margin: 10px auto 0;
+        }
+
+        /* Search Section */
         .search-section {
             background: white;
             padding: 40px;
-            border-radius: 16px;
+            border-radius: 12px;
             box-shadow: var(--shadow);
-            margin: -30px 20px 50px;
+            margin-bottom: 50px;
             position: relative;
             z-index: 10;
+            margin-top: -30px;
         }
 
         .search-container {
-            max-width: 800px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
         .search-form {
             display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-            position: relative;
-        }
-
-        .search-input-wrapper {
-            flex: 1;
-            position: relative;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         .search-input {
-            width: 100%;
-            padding: 16px 20px;
+            flex: 1;
+            padding: 15px 20px;
             border: 2px solid var(--border);
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 1rem;
-            font-family: inherit;
-            transition: var(--transition);
-            background: #fafbfc;
+            transition: all 0.3s ease;
         }
 
         .search-input:focus {
             outline: none;
             border-color: var(--primary);
-            background: white;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        .search-input::placeholder {
-            color: var(--text-light);
-        }
-
-        .search-clear-btn {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
             border: none;
-            color: var(--text-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 1.2rem;
-            padding: 5px;
-            display: none;
-            transition: var(--transition);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
         }
 
-        .search-clear-btn:hover {
-            color: var(--error);
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
         }
 
-        .seaNFO BOX */
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        .search-hint {
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+        }
+
+        /* Info Box */
         .info-box {
             background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
             border-left: 4px solid var(--primary);
-            padding: 18px 20px;
-            border-radius: 10px;
+            padding: 15px 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
             font-size: 0.95rem;
             color: #1e40af;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .info-box i {
-            flex-shrink: 0;
-            margin-top: 3px;
-        }
-
-        .info-box div {
-            flex: 1;
         }
 
         .info-box strong {
-            color: var(--primary-dark);
-            display: block;
-            margin-bottom: 5px;
+            color: var(--primary);
         }
 
-        /* STATUS MESSAGES */
+        /* Status */
         .status-message {
-            padding: 16px 20px;
-            border-radius: 10px;
+            padding: 15px 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
             display: none;
             animation: slideDown 0.3s ease-out;
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
 
         @keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateY(-15px);
+                transform: translateY(-10px);
             }
             to {
                 opacity: 1;
@@ -245,15 +209,15 @@
         }
 
         .status-message.success {
-            background: #ecfdf5;
-            color: #065f46;
+            background: #f1f8e9;
+            color: #558b2f;
             border-left: 4px solid var(--success);
         }
 
         .status-message.error {
-            background: #fef2f2;
-            color: #991b1b;
-            border-left: 4px solid var(--error);
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid var(--danger);
         }
 
         .status-message.loading {
@@ -262,401 +226,17 @@
             border-left: 4px solid var(--primary);
         }
 
-        .status-message.info {
-            background: #eff6ff;
-            color: #1e40af;
-            border-left: 4px solid var(--primary);
-        }
-
-        .status-message i {
-            flex-shrink: 0;
-            font-size: 1.2rem
-            border-top: none;
-            XAMPLES */
+        /* Examples */
         .examples {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
         }
 
         .example-btn {
             background: white;
             border: 2px solid var(--border);
-            padding: 14px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: var(--transition);
-            text-align: left;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--dark);
-            font-family: inherit;
-        }
-
-        .example-btn:hover {
-            border-color: var(--primary);
-            background: #f0f9ff;
-            shadow: var(--shadow-sm);
-        }
-
-        .example-btn i {
-            margin-right: 8px;
-            color: var(--primary);
-        }
-
-        /* GENERATED PAGE DISPLAY */
-        .generated-page-wrapper {
-            display: none;
-            margin: 40px 0;
-            position: relative;
-            z-index: 5;
-        }
-
-        .generated-page-wrapper.active {
-            display: block;
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 60px 30px;
-            border-radius: 16px 16px 0 0;
-            margin-bottom: 0;
-        }
-
-        .page-title-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .page-breadcrumb {
-            font-size: 0.85rem;
-            opacity: 0.8;
-            margin-bottom: 15px;
-        }
-
-        .page-breadcrumb a {
-            color: white;
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .page-breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 15px;
-            text-transform: capitalize;
-        }
-
-        .page-description {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 20px;
-            line-height: 1.8;
-        }
-
-        .page-meta {
-            display: flex;
-            gap: 25px;
-            font-size: 0.9rem;
-            opacity: 0.85;
-            flex-wrap: wrap;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .page-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* PAGE CONTENT */
-        .page-content {
-            background: white;
-            padding: 40px 30px;
-            border-radius: 0 0 16px 16px;
-            margin-bottom: 40px;
-            box-shadow: var(--shadow);
-        }ECENT PAGES SECTION */
-        .recent-section {
-            margin: 80px 0 60px;
-        }
-
-        .section-title {
-            font-size: 2rem;
-            margin-bottom: 40px;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .section-title i {
-            color: var(--primary);
-            font-size: 2.2rem;
-        }
-
-        .section-subtitle {
-            color: var(--text-light);
-            font-size: 1rem;
-            margin-top: -30px;
-            margin-bottom: 40px;
-        }
-
-        .pages-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 20px;
-        }
-
-        .page-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-        }
-
-        .page-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow);
-        }
-
-        .page-card-image {
-            height: 180px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3.5rem;
-            color: white;
-            font-weight: 700;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .page-card-image::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), transparent);
-            opacity: 0;
-            transition: var(--transition);
-        }
-
-        .page-card:hover .page-card-image::after {
-            opacity: 1;
-        }
-
-        .page-card-content {
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .page-card-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 10px;
-            text-transform: capitalize;
-            line-height: 1.4;
-        }
-
-        .page-card-description {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-bottom: 15px;
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .page-card-meta {
-            display: flex;
-            gap: 15px;
-            font-size: 0.8rem;
-            color: var(--text-light);
-            border-top: 1px solid var(--border);
-            padding-top: 12px;
-        }
-
-        .page-card-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .page-card-badge {
-            display: inline-block;
-            background: #ecfdf5;
-            color: #065f46;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
-        .page-card-badge.cached {
-            background: #eff6ff;
-            color: #1e40af;
-        }
-
-        .page-card-badge.new {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        /* EMPTY STATE */
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: var(--text-light);
-            background: white;
-            border-radius: 12px;
-            margin: 40px 0;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-
-        .empty-state h3 {
-            color: var(--text);
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-        }
-
-        /* LOADING ANIMATION */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            display: none;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .spinner {
-            border: 5px solid var(--light-gray);
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            color: var(--text-light);
-            font-size: 1rem;
-            margin-top: 10px;
-        }
-
-        /* FOOTER */
-        footer {
-            background: var(--dark);
-            color: white;
-            padding: 40px 20px;
-            margin-top: auto;
-            text-align: center;
-        }
-
-        footer a {
-            color: var(--primary-light);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .logo {
-                font-size: 2rem;
-            }
-
-            .tagline {
-                font-size: 1.2rem;
-            }
-
-            .search-form {
-                flex-direction: column;
-            }
-
-            .page-title {
-                font-size: 1.8rem;
-            }
-
-            .pages-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .section-title {
-                font-size: 1.5rem;
-            }
-
-            header {
-                padding: 60px 20px 40px;
-            }
-
-            .page-meta {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
-
-        /* UTILITIES */
-        .hidden {
-            display: none !important;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .mt-40 {
-            margin-top: 40px;
-        }
-
-        .mb-40 {
-            margin-bottom: 40px;
-        }
-
-        .flex-gap {
-            display: flex;
-            gap: 10px;order: 2px solid var(--border);
             padding: 15px 20px;
             border-radius: 8px;
             cursor: pointer;
@@ -883,1070 +463,365 @@
                 grid-template-columns: 1fr;
             }
         }
+    </style>
 </head>
 <body>
     <div class="page-wrapper">
-        <!-- HEADER -->
+        <!-- Header -->
         <header>
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-brain"></i>
-                    Intebwio
-                </div>
-                <div class="tagline">AI-Powered Web Browser</div>
-                <div class="subtitle">
-                    Search the web, AI scans & aggregates the best content, generates beautiful cached pages with visualizations
-                </div>
+            <div class="container">
+                <div class="logo">✨ Intebwio</div>
+                <p class="tagline">AI-Powered Landing Page Generator</p>
+                <p class="subtitle">Generate beautiful, information-rich pages with AI. All pages are automatically stored and accessible.</p>
             </div>
         </header>
 
-        <!-- SEARCH SECTION -->
-        <div class="container">
+        <!-- Search Section -->
+        <div class="container" style="margin-top: 40px; margin-bottom: 40px;">
             <div class="search-section">
                 <div class="search-container">
                     <div class="info-box">
-                        <i class="fas fa-lightbulb"></i>
-                        <div>
-                            <strong>How Intebwio Works:</strong>
-                            <div>Search for any topic. If a page exists, we show it instantly. If not, AI generates a beautiful page with aggregated content from across the web. Pages are cached and accessible forever.</div>
-                        </div>
+                        <i class="fas fa-info-circle"></i>
+                        <strong>New Feature:</strong> Unlimited page generation with beautiful visualizations, timelines, and comparison charts!
                     </div>
 
-                    <form class="search-form" id="searchForm">
-                        <div class="search-input-wrapper">
-                            <input 
-                                type="text" 
-                                class="search-input" 
-                                id="searchInput" 
-                                placeholder="Search anything... (e.g., 'History of Artificial Intelligence', 'Best Web Frameworks 2024')"
-                                autocomplete="off"
-                            >
-                            <button type="button" class="search-clear-btn" id="clearBtn" title="Clear search">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <ul class="autocomplete-list" id="autocompleteList"></ul>
-                        </div>
-                        <button type="submit" class="search-btn" id="searchBtn">
-                            <i class="fas fa-search"></i>
-                            Search
+                    <div id="statusMessage" class="status-message"></div>
+
+                    <form id="generateForm" class="search-form">
+                        <input 
+                            type="text" 
+                            id="topicInput" 
+                            class="search-input"
+                            placeholder="Enter any topic (e.g., 'Artificial Intelligence', 'Renewable Energy')"
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            <span>Generate</span>
                         </button>
                     </form>
 
-                    <div class="search-hint">
-                        💡 Pages are cached and reused - same search = instant results. Updated weekly with fresh content.
-                    </div>
+                    <p class="search-hint">💡 Tip: Our AI generates comprehensive pages with visualizations, timelines, and beautiful layouts</p>
 
-                    <!-- Status Messages -->
-                    <div class="status-message" id="statusMessage"></div>
-
-                    <!-- Examples -->
                     <div class="examples">
-                        <button class="example-btn" data-search="History of Artificial Intelligence">
-                            <i class="fas fa-robot"></i>
-                            History of AI
+                        <button type="button" class="example-btn" onclick="generateTopic('Artificial Intelligence')">
+                            🤖 Artificial Intelligence
                         </button>
-                        <button class="example-btn" data-search="Best Web Frameworks 2024">
-                            <i class="fas fa-code"></i>
-                            Web Frameworks
+                        <button type="button" class="example-btn" onclick="generateTopic('climate change')">
+                            🌍 Climate Change
                         </button>
-                        <button class="example-btn" data-search="Machine Learning Guide">
-                            <i class="fas fa-chart-line"></i>
-                            Machine Learning
+                        <button type="button" class="example-btn" onclick="generateTopic('quantum computing')">
+                            ⚛️ Quantum Computing
                         </button>
-                        <button class="example-btn" data-search="Climate Change Solutions">
-                            <i class="fas fa-leaf"></i>
-                            Climate Change
+                        <button type="button" class="example-btn" onclick="generateTopic('blockchain technology')">
+                            ⛓️ Blockchain
+                        </button>
+                        <button type="button" class="example-btn" onclick="generateTopic('space exploration')">
+                            🛸 Space Exploration
+                        </button>
+                        <button type="button" class="example-btn" onclick="generateTopic('renewable energy')">
+                            ⚡ Renewable Energy
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- LOADING ANIMATION -->
-        <div class="container">
-            <div class="loading" id="loadingIndicator">
+            <div class="loading" id="loadingMessage">
                 <div class="spinner"></div>
-                <div class="loading-text">AI is scanning the web and generating your page...</div>
+                <p>Generating your beautiful AI page...</p>
+                <p style="font-size: 0.9rem; color: #999; margin-top: 10px;">This typically takes 30-60 seconds</p>
             </div>
         </div>
 
-        <!-- GENERATED PAGE DISPLAY -->
-        <div class="container generated-page-wrapper" id="generatedPageWrapper">
-            <!-- Header will be inserted here -->
-            <div id="pageHeaderContainer"></div>
-            
-            <!-- Content will be inserted here -->
-            <div class="page-content" id="pageContentContainer"></div>
-        </div>
-
-        <!-- RECENT PAGES SECTION -->
-        <div class="container recent-section">
-            <h2 class="section-title">
-                <i class="fas fa-history"></i>
-                Recently Generated Pages
-            </h2>
-            <p class="section-subtitle">
-                Pages are cached and updated periodically. Click to view any cached page instantly.
-            </p>
-            
-            <div class="pages-grid" id="pagesGrid">
-                <!-- Page cards will be inserted here -->
-            </div>
-
-            <div class="empty-state" id="emptyState">
-                <i class="fas fa-inbox"></i>
-                <h3>No pages yet</h3>
-                <p>Pages will appear here as you search. Each generated page is cached and can be accessed anytime.</p>
+        <!-- Stats Bar -->
+        <div class="container">
+            <div class="stats-bar">
+                <div class="stat">
+                    <div class="stat-value" id="totalPages">0</div>
+                    <div class="stat-label">Pages Generated</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="totalViews">0</div>
+                    <div class="stat-label">Total Views</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">∞</div>
+                    <div class="stat-label">Unlimited Capacity</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">✓</div>
+                    <div class="stat-label">Always Stored</div>
+                </div>
             </div>
         </div>
 
-        <!-- FOOTER -->
+        <!-- Recent Pages Section -->
+        <div class="container">
+            <section class="recent-section">
+                <h2 class="section-title">
+                    <i class="fas fa-sparkles"></i>
+                    Recently Generated Pages
+                </h2>
+
+                <div id="pagesContainer" class="pages-grid">
+                    <div class="empty-state">
+                        <i class="fas fa-book-open"></i>
+                        <h3>No Pages Yet</h3>
+                        <p>Generate your first AI-powered page to get started</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
         <footer>
-            <p>&copy; 2024 Intebwio - AI Web Browser. All pages updated weekly. <a href="#top">Back to top</a></p>
+            <div class="container">
+                <p><strong>Intebwio</strong> - AI-Powered Page Generation Platform</p>
+                <p>Generate beautiful, information-rich pages with diagrams and visualizations</p>
+                <p>&copy; 2026 Intebwio. Powered by Google Gemini AI.</p>
+            </div>
         </footer>
     </div>
 
-    <!-- MAIN JAVASCRIPT - 1000+ lines -->
     <script>
-        /**
-         * INTEBWIO - Main Application JavaScript
-         * AI Web Browser with Page Caching and Generation
-         * Total Lines: 1200+
-         */
+        // Configuration
+        const API_BASE = '/api/';
+        const TIMEOUT = 180000; // 3 minutes
 
-        // ==================== CONFIGURATION ====================
-        const CONFIG = {
-            apiKeys: {
-                gemini: 'AIzaSyAPMrwvoxVtFBegqxqOT1JH_7QQZLnhqzg',
-                googleSearch: 'YOUR_GOOGLE_SEARCH_KEY_HERE',
-                serpapi: 'YOUR_SERPAPI_KEY_HERE'
-            },
-            updateInterval: 7 * 24 * 60 * 60 * 1000,
-            similarityThreshold: 0.75,
-            maxCachedPages: 5000,
-            debounceDelay: 300,
-            animationDuration: 300,
-            storagePrefix: 'intebwio_'
-        };
+        // State
+        let currentPages = [];
+        let stats = { total: 0, views: 0 };
 
-        // ==================== STATE MANAGEMENT ====================
-        const state = {
-            currentPage: null,
-            cachedPages: [],
-            searchHistory: [],
-            isSearching: false,
-            lastSearch: null,
-            stats: {
-                totalSearches: 0,
-                totalViews: 0,
-                pagesGenerated: 0
-            }
-        };
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPageStatistics();
+            loadRecentPages();
+            setupEventListeners();
+        });
 
-        // ==================== DOM ELEMENTS ====================
-        const elements = {
-            searchForm: document.getElementById('searchForm'),
-            searchInput: document.getElementById('searchInput'),
-            searchBtn: document.getElementById('searchBtn'),
-            clearBtn: document.getElementById('clearBtn'),
-            statusMessage: document.getElementById('statusMessage'),
-            loadingIndicator: document.getElementById('loadingIndicator'),
-            generatedPageWrapper: document.getElementById('generatedPageWrapper'),
-            pageHeaderContainer: document.getElementById('pageHeaderContainer'),
-            pageContentContainer: document.getElementById('pageContentContainer'),
-            pagesGrid: document.getElementById('pagesGrid'),
-            emptyState: document.getElementById('emptyState'),
-            autocompleteList: document.getElementById('autocompleteList')
-        };
+        // Setup event listeners
+        function setupEventListeners() {
+            const form = document.getElementById('generateForm');
+            form.addEventListener('submit', handleGeneratePage);
 
-        // ==================== UTILITY FUNCTIONS ====================
-
-        /**
-         * Debounce function to limit API calls
-         * @param {Function} func - Function to debounce
-         * @param {number} delay - Delay in milliseconds
-         * @returns {Function}
-         */
-        function debounce(func, delay) {
-            let timeoutId;
-            return function(...args) {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => func.apply(this, args), delay);
-            };
-        }
-
-        /**
-         * Calculate string similarity using Levenshtein distance
-         * @param {string} str1 - First string
-         * @param {string} str2 - Second string
-         * @returns {number} Similarity score 0-1
-         */
-        function calculateSimilarity(str1, str2) {
-            const s1 = str1.toLowerCase().trim();
-            const s2 = str2.toLowerCase().trim();
-            
-            if (s1 === s2) return 1;
-            
-            const longer = s1.length > s2.length ? s1 : s2;
-            const shorter = s1.length > s2.length ? s2 : s1;
-            
-            if (longer.length === 0) return 1;
-            
-            const editDistance = getEditDistance(longer, shorter);
-            return (longer.length - editDistance) / longer.length;
-        }
-
-        /**
-         * Calculate edit distance between two strings
-         * @param {string} s1 - First string
-         * @param {string} s2 - Second string
-         * @returns {number}
-         */
-        function getEditDistance(s1, s2) {
-            const costs = [];
-            for (let i = 0; i <= s1.length; i++) {
-                let lastValue = i;
-                for (let j = 0; j <= s2.length; j++) {
-                    if (i === 0) {
-                        costs[j] = j;
-                    } else if (j > 0) {
-                        let newValue = costs[j - 1];
-                        if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
-                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                        }
-                        costs[j - 1] = lastValue;
-                        lastValue = newValue;
-                    }
+            const topicInput = document.getElementById('topicInput');
+            topicInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    form.dispatchEvent(new Event('submit'));
                 }
-                if (i > 0) costs[s2.length] = lastValue;
-            }
-            return costs[s2.length];
+            });
+
+            // Keyboard shortcut: Ctrl+K to focus search
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    topicInput.focus();
+                }
+            });
         }
 
-        /**
-         * Show status message to user
-         * @param {string} message - Message text
-         * @param {string} type - Message type (info, success, error, loading)
-         * @param {number} duration - Duration in ms (0 = permanent)
-         */
-        function showStatus(message, type = 'info', duration = 5000) {
-            const statusEl = elements.statusMessage;
-            const icons = {
-                success: 'check-circle',
-                error: 'exclamation-circle',
-                loading: 'spinner',
-                info: 'info-circle'
-            };
-            
-            statusEl.innerHTML = `
-                <i class="fas fa-${icons[type] || 'info-circle'}"></i>
-                <div>${sanitizeHtml(message)}</div>
-            `;
-            statusEl.className = `status-message ${type}`;
-            statusEl.style.display = 'flex';
-
-            if (duration > 0) {
-                setTimeout(() => {
-                    statusEl.style.display = 'none';
-                }, duration);
-            }
+        // Generate topic from button click
+        function generateTopic(topic) {
+            document.getElementById('topicInput').value = topic;
+            handleGeneratePage(new Event('submit'));
         }
 
-        /**
-         * Format date to readable string
-         * @param {Date|string} date - Date to format
-         * @returns {string}
-         */
-        function formatDate(date) {
-            if (typeof date === 'string') {
-                date = new Date(date);
-            }
-            const now = new Date();
-            const diff = now - date;
-            const seconds = Math.floor(diff / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
-
-            if (seconds < 60) return 'just now';
-            if (minutes < 60) return `${minutes}m ago`;
-            if (hours < 24) return `${hours}h ago`;
-            if (days < 7) return `${days}d ago`;
-            
-            return date.toLocaleDateString();
-        }
-
-        /**
-         * Sanitize HTML to prevent XSS attacks
-         * @param {string} html - HTML to sanitize
-         * @returns {string}
-         */
-        function sanitizeHtml(html) {
-            const div = document.createElement('div');
-            div.textContent = html;
-            return div.innerHTML;
-        }
-
-        /**
-         * Generate random ID
-         * @returns {string}
-         */
-        function generateId() {
-            return 'page_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        /**
-         * Create URL slug from text
-         * @param {string} text - Text to convert
-         * @returns {string}
-         */
-        function createSlug(text) {
-            return text
-                .toLowerCase()
-                .trim()
-                .replace(/[^\w\s-]/g, '')
-                .replace(/\s+/g, '-')
-                .replace(/-+/g, '-')
-                .substring(0, 60);
-        }
-
-        /**
-         * Get random emoji icon
-         * @returns {string}
-         */
-        function generateRandomEmoji() {
-            const emojis = ['🚀', '📚', '🔬', '💡', '🎯', '🌟', '⚡', '🎨', '🔥', '💻', '🌐', '📊', '🎓', '🏆', '💼'];
-            return emojis[Math.floor(Math.random() * emojis.length)];
-        }
-
-        /**
-         * Escape JSON string
-         * @param {string} str - String to escape
-         * @returns {string}
-         */
-        function escapeJson(str) {
-            return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-        }
-
-        // ==================== SEARCH FUNCTIONALITY ====================
-
-        /**
-         * Handle search form submission
-         * @param {Event} e - Form event
-         */
-        function handleSearch(e) {
+        // Handle page generation
+        function handleGeneratePage(e) {
             e.preventDefault();
-            
-            const query = elements.searchInput.value.trim();
-            if (!query) {
-                showStatus('Please enter a search query', 'error');
+
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) {
+                showStatus('Please enter a topic', 'error');
                 return;
             }
 
-            performSearch(query);
+            generatePage(topic);
         }
 
-        /**
-         * Main search function
-         * @param {string} query - Search query
-         */
-        async function performSearch(query) {
-            if (state.isSearching) return;
-
-            state.isSearching = true;
-            state.lastSearch = query;
-            state.stats.totalSearches++;
-            
-            showStatus('Searching...', 'loading', -1);
-            setLoading(true);
-            elements.generatedPageWrapper.classList.remove('active');
-            elements.autocompleteList.classList.remove('active');
+        // Generate page via API
+        async function generatePage(topic) {
+            showLoading(true);
+            hideStatus();
 
             try {
-                // Check if page is already cached
-                const existingPage = findCachedPage(query);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
+                const response = await fetch(API_BASE + 'generate-beautiful-page.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: topic }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                // Check if response is valid
+                if (!response.ok) {
+                    const text = await response.text();
+                    try {
+                        const errorData = JSON.parse(text);
+                        showStatus('Error: ' + (errorData.message || 'Unknown error'), 'error');
+                    } catch {
+                        showStatus('Server error (' + response.status + '): ' + text.substring(0, 100), 'error');
+                    }
+                    showLoading(false);
+                    return;
+                }
+
+                // Parse JSON response
+                let data;
+                const responseText = await response.text();
                 
-                if (existingPage) {
-                    showStatus('✓ Found cached page! Loading instantly...', 'success', 3000);
-                    existingPage.views = (existingPage.views || 0) + 1;
-                    state.stats.totalViews++;
-                    displayPage(existingPage);
-                } else {
-                    showStatus('Generating new page with AI...', 'loading', -1);
-                    
-                    // Simulate AI generation (in production, call backend API)
-                    const newPage = await generateNewPage(query);
-                    displayPage(newPage);
-                    addToCachedPages(newPage);
-                    state.stats.pagesGenerated++;
-                    showStatus('✓ Page generated successfully!', 'success', 3000);
+                if (!responseText) {
+                    showStatus('Empty response from server', 'error');
+                    showLoading(false);
+                    return;
                 }
 
-                // Add to search history
-                addToSearchHistory(query);
-                updateRecentPages();
-                saveCacheToStorage();
-                saveStatsToStorage();
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    showStatus('JSON parsing error: ' + parseError.message, 'error');
+                    console.error('Response text:', responseText.substring(0, 200));
+                    showLoading(false);
+                    return;
+                }
+
+                if (data.success) {
+                    // Store the generated page
+                    if (data.page_id) {
+                        // Redirect to view generated page
+                        window.location.href = '/page.php?id=' + data.page_id;
+                    } else {
+                        // Fallback: show the HTML in a new window
+                        const newWindow = window.open();
+                        newWindow.document.write(data.html);
+                        newWindow.document.close();
+                    }
+
+                    showStatus(`✓ Page generated in ${data.metadata.generation_time_seconds}s`, 'success');
+                    loadRecentPages();
+                    loadPageStatistics();
+                } else {
+                    showStatus('Error: ' + data.message, 'error');
+                }
             } catch (error) {
-                console.error('Search error:', error);
-                showStatus('Error: ' + error.message, 'error');
+                if (error.name === 'AbortError') {
+                    showStatus('Generation timeout - took too long', 'error');
+                } else {
+                    showStatus('Error: ' + error.message, 'error');
+                }
             } finally {
-                state.isSearching = false;
-                setLoading(false);
+                showLoading(false);
             }
         }
 
-        /**
-         * Find cached page by similarity
-         * @param {string} query - Search query
-         * @returns {Object|null}
-         */
-        function findCachedPage(query) {
-            for (const page of state.cachedPages) {
-                const similarity = calculateSimilarity(query, page.topic);
-                if (similarity >= CONFIG.similarityThreshold) {
-                    return page;
-                }
-            }
-            return null;
-        }
-
-        /**
-         * Generate new page with AI content
-         * @param {string} query - Page topic
-         * @returns {Promise<Object>}
-         */
-        async function generateNewPage(query) {
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
-
-            const page = {
-                id: generateId(),
-                topic: query,
-                slug: createSlug(query),
-                url: `?page=${createSlug(query)}`,
-                description: generateDescription(query),
-                content: generatePageContent(query),
-                imageIcon: generateRandomEmoji(),
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                cached: true,
-                views: 1,
-                sources: generateSources(query),
-                wordCount: Math.floor(Math.random() * 5000) + 2000
-            };
-
-            return page;
-        }
-
-        /**
-         * Generate description for page
-         * @param {string} topic - Topic
-         * @returns {string}
-         */
-        function generateDescription(topic) {
-            const descriptions = [
-                `Complete guide to ${topic}`,
-                `Everything you need to know about ${topic}`,
-                `In-depth overview of ${topic}`,
-                `The ultimate resource for ${topic}`,
-                `Comprehensive information on ${topic}`,
-                `Expert insights on ${topic}`,
-                `Detailed analysis of ${topic}`
-            ];
-            return descriptions[Math.floor(Math.random() * descriptions.length)];
-        }
-
-        /**
-         * Generate page content with HTML
-         * @param {string} topic - Topic
-         * @returns {string}
-         */
-        function generatePageContent(topic) {
-            return `
-                <h2>Introduction to ${sanitizeHtml(topic)}</h2>
-                <p>
-                    ${sanitizeHtml(topic)} is a fascinating and important subject that has captured the attention 
-                    of researchers, professionals, and enthusiasts around the world. This comprehensive 
-                    guide provides an in-depth overview of the key concepts, history, and contemporary 
-                    developments in this field.
-                </p>
-
-                <div class="content-block">
-                    <strong>Key Takeaway:</strong> Understanding ${sanitizeHtml(topic)} opens doors to numerous 
-                    opportunities and innovations that shape our modern world.
-                </div>
-
-                <h3>Historical Background</h3>
-                <p>
-                    The history of ${sanitizeHtml(topic)} is rich with innovation and discovery. From its earliest 
-                    conceptualizations to modern applications, this field has evolved significantly. Early 
-                    pioneers laid the groundwork that enabled subsequent generations to build upon their 
-                    work and achieve remarkable breakthroughs.
-                </p>
-
-                <h3>Core Concepts</h3>
-                <ul>
-                    <li><strong>Fundamental Principles:</strong> Understanding the basic building blocks</li>
-                    <li><strong>Key Theories:</strong> The major frameworks that explain how things work</li>
-                    <li><strong>Practical Applications:</strong> Real-world uses and implementations</li>
-                    <li><strong>Future Potential:</strong> Emerging trends and opportunities</li>
-                    <li><strong>Industry Impact:</strong> How this affects various sectors</li>
-                </ul>
-
-                <h3>Current Trends (2024-2025)</h3>
-                <p>
-                    The field is rapidly evolving with several major trends shaping its future:
-                </p>
-                <ul>
-                    <li>Increased integration with artificial intelligence and machine learning</li>
-                    <li>Growing emphasis on sustainability and ethical practices</li>
-                    <li>Expansion of global collaboration and knowledge sharing</li>
-                    <li>Development of new technologies and methodologies</li>
-                    <li>Rise of automation and process optimization</li>
-                </ul>
-
-                <h3>Practical Applications</h3>
-                <p>
-                    ${sanitizeHtml(topic)} has numerous practical applications across different industries:
-                </p>
-                <ul>
-                    <li><strong>Technology Sector:</strong> Direct applications in various business contexts</li>
-                    <li><strong>Healthcare:</strong> Transformative potential in medical innovation</li>
-                    <li><strong>Education:</strong> Critical role in learning and development</li>
-                    <li><strong>Business:</strong> Essential for organizational success</li>
-                </ul>
-
-                <div class="content-block highlight">
-                    <strong>Did You Know?</strong> Recent research shows that ${sanitizeHtml(topic)} is becoming 
-                    increasingly important for professional development and organizational success globally.
-                </div>
-
-                <h3>Getting Started</h3>
-                <p>
-                    Whether you're a complete beginner or looking to deepen your knowledge, here are 
-                    some recommended steps:
-                </p>
-                <ol>
-                    <li>Start with foundational concepts and build your understanding gradually</li>
-                    <li>Explore practical examples and real-world case studies</li>
-                    <li>Join communities and connect with other enthusiasts and experts</li>
-                    <li>Apply your knowledge to personal or professional projects</li>
-                    <li>Stay updated with latest developments and industry changes</li>
-                    <li>Seek mentorship from experienced professionals</li>
-                </ol>
-
-                <h3>Key Statistics</h3>
-                <ul>
-                    <li>Market size is growing at 25-30% annually</li>
-                    <li>Over 10 million professionals work in this field globally</li>
-                    <li>Investment has tripled in the past 5 years</li>
-                    <li>New innovations emerge weekly in this space</li>
-                </ul>
-
-                <h3>Resources and Further Reading</h3>
-                <p>
-                    To deepen your understanding, consider exploring these resources:
-                </p>
-                <ul>
-                    <li>Academic journals and peer-reviewed research papers</li>
-                    <li>Online courses and educational platforms</li>
-                    <li>Books by leading experts and thought leaders</li>
-                    <li>Podcasts and video tutorials</li>
-                    <li>Industry conferences and professional events</li>
-                    <li>Webinars and online workshops</li>
-                </ul>
-
-                <div class="content-block warning">
-                    <strong>Important Note:</strong> This information is based on current knowledge and 
-                    best practices. Always verify critical information from authoritative sources and 
-                    consult with qualified experts when appropriate.
-                </div>
-
-                <h3>Conclusion</h3>
-                <p>
-                    ${sanitizeHtml(topic)} represents an exciting frontier of knowledge and opportunity. By understanding 
-                    its principles, history, and modern applications, you can better navigate the opportunities 
-                    and challenges of today's world. Whether for professional development, personal enrichment, 
-                    or practical implementation, the knowledge gained proves invaluable in countless contexts.
-                </p>
-
-                <p style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 0.9rem;">
-                    <strong>Last Updated:</strong> ${new Date().toLocaleDateString()} | 
-                    <strong>Content Sources:</strong> Wikipedia, Google Scholar, Industry Publications | 
-                    <strong>Next Update:</strong> In 7 days | 
-                    <strong>Reading Time:</strong> ~15 minutes
-                </p>
-            `;
-        }
-
-        /**
-         * Generate mock sources for page
-         * @param {string} topic - Topic
-         * @returns {Array}
-         */
-        function generateSources(topic) {
-            return [
-                { name: 'Wikipedia', url: 'https://wikipedia.org' },
-                { name: 'Google Scholar', url: 'https://scholar.google.com' },
-                { name: 'Industry Publications', url: '#' },
-                { name: 'Expert Blogs', url: '#' },
-                { name: 'Research Papers', url: '#' }
-            ];
-        }
-
-        /**
-         * Display generated page to user
-         * @param {Object} page - Page object
-         */
-        function displayPage(page) {
-            state.currentPage = page;
-
-            // Create header
-            const headerHTML = `
-                <div class="page-header">
-                    <div class="page-title-container">
-                        <div class="page-breadcrumb">
-                            <a href="javascript:location.reload()">Home</a> / ${sanitizeHtml(page.topic)}
-                        </div>
-                        <h1 class="page-title">${sanitizeHtml(page.topic)}</h1>
-                        <p class="page-description">${sanitizeHtml(page.description)}</p>
-                        <div class="page-meta">
-                            <div class="page-meta-item">
-                                <i class="fas fa-calendar"></i>
-                                Created: ${formatDate(page.createdAt)}
-                            </div>
-                            <div class="page-meta-item">
-                                <i class="fas fa-sync-alt"></i>
-                                Updated: ${formatDate(page.updatedAt)}
-                            </div>
-                            <div class="page-meta-item">
-                                <i class="fas fa-eye"></i>
-                                Views: ${page.views || 1}
-                            </div>
-                            <div class="page-meta-item">
-                                <i class="fas fa-check-circle"></i>
-                                Status: ${page.cached ? '✓ Cached' : '◆ New'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Add stats section
-            const statsHTML = `
-                <div class="stats-bar">
-                    <div class="stat-card">
-                        <div class="stat-value">100%</div>
-                        <div class="stat-label">Quality</div>
-                    </div>
-                    <div class="stat-card secondary">
-                        <div class="stat-value">4.8★</div>
-                        <div class="stat-label">Rating</div>
-                    </div>
-                    <div class="stat-card success">
-                        <div class="stat-value">${page.views || 1}</div>
-                        <div class="stat-label">Views</div>
-                    </div>
-                    <div class="stat-card accent">
-                        <div class="stat-value">${page.sources.length}</div>
-                        <div class="stat-label">Sources</div>
-                    </div>
-                </div>
-            `;
-
-            elements.pageHeaderContainer.innerHTML = headerHTML;
-            elements.pageContentContainer.innerHTML = statsHTML + page.content;
-            elements.generatedPageWrapper.classList.add('active');
-
-            // Scroll to page
-            setTimeout(() => {
-                elements.generatedPageWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 300);
-        }
-
-        /**
-         * Set loading indicator state
-         * @param {boolean} isLoading - Loading state
-         */
-        function setLoading(isLoading) {
-            if (isLoading) {
-                elements.loadingIndicator.classList.add('active');
-            } else {
-                elements.loadingIndicator.classList.remove('active');
-            }
-        }
-
-        // ==================== CACHE MANAGEMENT ====================
-
-        /**
-         * Add page to cache
-         * @param {Object} page - Page to cache
-         */
-        function addToCachedPages(page) {
-            const existingIndex = state.cachedPages.findIndex(p => p.id === page.id);
-            
-            if (existingIndex > -1) {
-                state.cachedPages[existingIndex] = page;
-            } else {
-                state.cachedPages.unshift(page);
-                if (state.cachedPages.length > CONFIG.maxCachedPages) {
-                    state.cachedPages.pop();
-                }
-            }
-        }
-
-        /**
-         * Save cache to localStorage
-         */
-        function saveCacheToStorage() {
+        // Load statistics
+        async function loadPageStatistics() {
             try {
-                localStorage.setItem(
-                    CONFIG.storagePrefix + 'pages',
-                    JSON.stringify(state.cachedPages.slice(0, 20))
-                );
-            } catch (error) {
-                console.error('Error saving cache:', error);
-            }
-        }
+                const response = await fetch(API_BASE + 'latest.php?limit=100');
+                const data = await response.json();
 
-        /**
-         * Save stats to localStorage
-         */
-        function saveStatsToStorage() {
-            try {
-                localStorage.setItem(
-                    CONFIG.storagePrefix + 'stats',
-                    JSON.stringify(state.stats)
-                );
-            } catch (error) {
-                console.error('Error saving stats:', error);
-            }
-        }
+                if (data.success && data.pages) {
+                    stats.total = data.pages.length;
+                    stats.views = data.pages.reduce((sum, p) => sum + (p.view_count || 0), 0);
 
-        /**
-         * Load cached pages from localStorage
-         */
-        function loadCachedPages() {
-            try {
-                const cached = localStorage.getItem(CONFIG.storagePrefix + 'pages');
-                if (cached) {
-                    state.cachedPages = JSON.parse(cached);
-                } else {
-                    state.cachedPages = [];
-                }
-            } catch (error) {
-                console.error('Error loading cached pages:', error);
-                state.cachedPages = [];
-            }
-        }
-
-        /**
-         * Load stats from localStorage
-         */
-        function loadStats() {
-            try {
-                const stats = localStorage.getItem(CONFIG.storagePrefix + 'stats');
-                if (stats) {
-                    state.stats = JSON.parse(stats);
+                    document.getElementById('totalPages').textContent = stats.total;
+                    document.getElementById('totalViews').textContent = stats.views.toLocaleString();
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
         }
 
-        /**
-         * Add to search history
-         * @param {string} query - Search query
-         */
-        function addToSearchHistory(query) {
-            if (!state.searchHistory.includes(query)) {
-                state.searchHistory.unshift(query);
-                if (state.searchHistory.length > 20) {
-                    state.searchHistory.pop();
-                }
-                try {
-                    localStorage.setItem(
-                        CONFIG.storagePrefix + 'history',
-                        JSON.stringify(state.searchHistory)
-                    );
-                } catch (error) {
-                    console.error('Error saving search history:', error);
-                }
-            }
-        }
-
-        /**
-         * Load search history from localStorage
-         */
-        function loadSearchHistory() {
+        // Load recent pages
+        async function loadRecentPages() {
             try {
-                const history = localStorage.getItem(CONFIG.storagePrefix + 'history');
-                state.searchHistory = history ? JSON.parse(history) : [];
+                const response = await fetch(API_BASE + 'latest.php?limit=9');
+                const data = await response.json();
+
+                const container = document.getElementById('pagesContainer');
+
+                if (data.success && data.pages && data.pages.length > 0) {
+                    container.innerHTML = '';
+                    currentPages = data.pages;
+
+                    data.pages.forEach(page => {
+                        const card = createPageCard(page);
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <i class="fas fa-book-open"></i>
+                            <h3>No Pages Yet</h3>
+                            <p>Generate your first AI-powered page to get started</p>
+                        </div>
+                    `;
+                }
             } catch (error) {
-                console.error('Error loading search history:', error);
-                state.searchHistory = [];
+                console.error('Error loading pages:', error);
             }
         }
 
-        // ==================== UI UPDATE FUNCTIONS ====================
+        // Create page card
+        function createPageCard(page) {
+            const card = document.createElement('a');
+            card.href = '/page.php?id=' + page.id;
+            card.className = 'page-card';
 
-        /**
-         * Update recent pages grid
-         */
-        function updateRecentPages() {
-            const grid = elements.pagesGrid;
-            
-            if (state.cachedPages.length === 0) {
-                elements.emptyState.style.display = 'block';
-                grid.innerHTML = '';
-                return;
-            }
+            const firstLetter = (page.title || 'A')[0].toUpperCase();
+            const colors = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#10b981'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
 
-            elements.emptyState.style.display = 'none';
-            
-            grid.innerHTML = state.cachedPages.slice(0, 12).map(page => `
-                <div class="page-card" onclick="handlePageCardClick('${page.id}', event)">
-                    <div class="page-card-image">
-                        ${page.imageIcon}
-                    </div>
-                    <div class="page-card-content">
-                        <div>
-                            <div class="page-card-badge ${page.cached ? 'cached' : 'new'}">
-                                ${page.cached ? 'Cached' : 'New'}
-                            </div>
-                            <h3 class="page-card-title">${sanitizeHtml(page.topic)}</h3>
-                            <p class="page-card-description">${sanitizeHtml(page.description)}</p>
-                        </div>
-                        <div class="page-card-meta">
-                            <div class="page-card-meta-item">
-                                <i class="fas fa-calendar"></i>
-                                ${formatDate(page.createdAt)}
-                            </div>
-                            <div class="page-card-meta-item">
-                                <i class="fas fa-eye"></i>
-                                ${page.views || 0}
-                            </div>
-                        </div>
+            const dateObj = new Date(page.created_at);
+            const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: dateObj.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined 
+            });
+
+            card.innerHTML = `
+                <div class="page-card-image" style="background: linear-gradient(135deg, ${color}, ${color}99);">
+                    ${firstLetter}
+                </div>
+                <div class="page-card-content">
+                    <div class="page-card-title">${page.title || 'Untitled'}</div>
+                    <div class="page-card-meta">
+                        <span>👁️ ${page.view_count || 0} views</span>
+                        <span>📅 ${formattedDate}</span>
                     </div>
                 </div>
-            `).join('');
+            `;
+
+            return card;
         }
 
-        /**
-         * Handle page card click
-         * @param {string} pageId - Page ID
-         * @param {Event} event - Click event
-         */
-        function handlePageCardClick(pageId, event) {
-            event.preventDefault();
-            const page = state.cachedPages.find(p => p.id === pageId);
-            if (page) {
-                page.views = (page.views || 0) + 1;
-                state.stats.totalViews++;
-                displayPage(page);
-                saveCacheToStorage();
-                saveStatsToStorage();
+        // Show/hide loading
+        function showLoading(show) {
+            document.getElementById('loadingMessage').style.display = show ? 'block' : 'none';
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = 'status-message ' + type;
+            statusEl.style.display = 'block';
+
+            if (type === 'success' || type === 'error') {
+                setTimeout(hideStatus, 5000);
             }
         }
 
-        /**
-         * Update autocomplete suggestions
-         * @param {string} query - Search query
-         */
-        async function updateAutocompleteSuggestions(query) {
-            if (query.length < 2) {
-                elements.autocompleteList.classList.remove('active');
-                return;
-            }
-
-            const commonTopics = [
-                'History of Artificial Intelligence',
-                'Web Development Best Practices',
-                'Machine Learning Algorithms',
-                'Data Science Fundamentals',
-                'Cloud Computing Guide',
-                'Cybersecurity Threats',
-                'Blockchain Technology',
-                'Quantum Computing',
-                'Space Exploration',
-                'Renewable Energy',
-                'Climate Change Solutions',
-                'Cryptocurrency Guide',
-                'Internet of Things',
-                'Augmented Reality',
-                'Virtual Reality'
-            ];
-
-            const suggestions = [
-                ...state.searchHistory.filter(h => h.toLowerCase().includes(query.toLowerCase())),
-                ...commonTopics.filter(t => t.toLowerCase().includes(query.toLowerCase()) && !state.searchHistory.includes(t))
-            ].slice(0, 8);
-
-            if (suggestions.length > 0) {
-                elements.autocompleteList.innerHTML = suggestions.map(suggestion => `
-                    <li class="autocomplete-item" onclick="selectAutocomplete('${escapeJson(suggestion)}')" title="${sanitizeHtml(suggestion)}">
-                        <i class="fas fa-search"></i>
-                        ${sanitizeHtml(suggestion)}
-                    </li>
-                `).join('');
-                elements.autocompleteList.classList.add('active');
-            } else {
-                elements.autocompleteList.classList.remove('active');
-            }
+        // Hide status message
+        function hideStatus() {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.style.display = 'none';
         }
-
-        /**
-         * Select from autocomplete suggestions
-         * @param {string} value - Selected value
-         */
-        function selectAutocomplete(value) {
-            elements.searchInput.value = value;
-            elements.autocompleteList.classList.remove('active');
-            performSearch(value);
-        }
-
-        // ==================== EVENT LISTENERS ====================
-
-        // Search form submission
-        elements.searchForm.addEventListener('submit', handleSearch);
-
-        // Example buttons
-        document.querySelectorAll('.example-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const query = btn.dataset.search;
-                elements.searchInput.value = query;
-                performSearch(query);
-            });
-        });
-
-        // Clear button
-        elements.clearBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            elements.searchInput.value = '';
-            elements.searchInput.focus();
-            elements.autocompleteList.classList.remove('active');
-        });
-
-        // Autocomplete
-        const debouncedAutocomplete = debounce((query) => {
-            updateAutocompleteSuggestions(query);
-        }, CONFIG.debounceDelay);
-
-        elements.searchInput.addEventListener('input', (e) => {
-            debouncedAutocomplete(e.target.value);
-        });
-
-        // Close autocomplete on blur
-        elements.searchInput.addEventListener('blur', () => {
-            setTimeout(() => {
-                elements.autocompleteList.classList.remove('active');
-            }, 200);
-        });
-
-        // Close autocomplete on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                elements.autocompleteList.classList.remove('active');
-            }
-        });
-
-        // Keyboard shortcut: Ctrl+K to focus search
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                elements.searchInput.focus();
-            }
-        });
-
-        // ==================== INITIALIZATION ====================
-
-        /**
-         * Initialize application
-         */
-        function initializeApp() {
-            loadCachedPages();
-            loadSearchHistory();
-            loadStats();
-            updateRecentPages();
-            
-            // Check for URL parameters (for direct page access)
-            const params = new URLSearchParams(window.location.search);
-            const pageSlug = params.get('page');
-            
-            if (pageSlug) {
-                const page = state.cachedPages.find(p => p.slug === pageSlug);
-                if (page) {
-                    elements.searchInput.value = page.topic;
-                    displayPage(page);
-                }
-            }
-
-            console.log('Intebwio initialized successfully');
-            console.log(`Loaded ${state.cachedPages.length} cached pages`);
-            console.log(`Search history: ${state.searchHistory.length} items`);
-            console.log(`Stats:`, state.stats);
-        }
-
-        // Run initialization when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeApp);
-        } else {
-            initializeApp();
-        }
-
-        // ==================== GLOBAL UTILITY FUNCTIONS ====================
-
-        /**
-         * Export cached pages as JSON
-         */
-        function exportPages() {
-            const dataStr = JSON.stringify(state.cachedPages, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `intebwio-pages-${new Date().toISOString()}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-        }
-
-        /**
-         * Clear all cache with confirmation
-         */
-        function clearAllCache() {
-            if (confirm('⚠️ Delete all cached pages? This cannot be undone.')) {
-                state.cachedPages = [];
-                state.searchHistory = [];
-                state.stats = { totalSearches: 0, totalViews: 0, pagesGenerated: 0 };
-                localStorage.removeItem(CONFIG.storagePrefix + 'pages');
-                localStorage.removeItem(CONFIG.storagePrefix + 'history');
-                localStorage.removeItem(CONFIG.storagePrefix + 'stats');
-                updateRecentPages();
-                showStatus('✓ Cache cleared successfully', 'success');
-            }
-        }
-
-        /**
-         * Get application statistics
-         * @returns {Object}
-         */
-        function getStats() {
-            return {
-                ...state.stats,
-                cachedPagesCount: state.cachedPages.length,
-                searchHistoryCount: state.searchHistory.length,
-                storageUsed: JSON.stringify(state.cachedPages).length
-            };
-        }
-
-        // ==================== MAKE FUNCTIONS GLOBAL ====================
-        window.clearAllCache = clearAllCache;
-        window.exportPages = exportPages;
-        window.getStats = getStats;
-        window.handlePageCardClick = handlePageCardClick;
-        window.selectAutocomplete = selectAutocomplete;
     </script>
 </body>
 </html>
