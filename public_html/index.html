@@ -24,8 +24,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Favicon and Web App Icons -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%232563eb'>⚡</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%232563eb' width='180' height='180'/><text y='135' font-size='130' fill='white'>⚡</text></svg>">
+    <link rel="icon" type="image/png" href="favi.png">
+    <link rel="apple-touch-icon" type="image/png" href="favi.png">
+    <link rel="shortcut icon" type="image/png" href="favi.png">
     
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
@@ -160,6 +161,20 @@
             align-items: center;
             justify-content: center;
             gap: 15px;
+        }
+
+        .logo-image {
+            height: 60px;
+            width: 60px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .logo-text {
+            font-size: 3.5rem;
+            font-weight: 800;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            letter-spacing: -1px;
         }
 
         /* SEARCH SECTION */
@@ -934,8 +949,8 @@
         <header>
             <div class="header-content">
                 <div class="logo">
-                    <i class="fas fa-brain"></i>
-                    Intebwio
+                    <img src="favi.png" alt="Intebwio Logo" class="logo-image">
+                    <span class="logo-text">Intebwio</span>
                 </div>
                 <div class="tagline">AI-Powered Web Browser</div>
                 <div class="subtitle">
