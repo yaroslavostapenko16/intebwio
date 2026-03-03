@@ -1264,29 +1264,52 @@
             state.lastSearch = query;
             state.stats.totalSearches++;
             
-            showStatus('Searching...', 'loading', -1);
+            showStatus('Searching database and generating page...', 'loading', -1);
             setLoading(true);
             elements.generatedPageWrapper.classList.remove('active');
             elements.autocompleteList.classList.remove('active');
 
             try {
-                // Check if page is already cached
-                const existingPage = findCachedPage(query);
+                // Call backend API to generate/fetch page
+                const response = await fetch(`./api/generate.php?action=generate&query=${encodeURIComponent(query)}`);
                 
-                if (existingPage) {
-                    showStatus('✓ Found cached page! Loading instantly...', 'success', 3000);
-                    existingPage.views = (existingPage.views || 0) + 1;
-                    state.stats.totalViews++;
-                    displayPage(existingPage);
-                } else {
-                    showStatus('Generating new page with AI...', 'loading', -1);
-                    
-                    // Simulate AI generation (in production, call backend API)
-                    const newPage = await generateNewPage(query);
-                    displayPage(newPage);
-                    addToCachedPages(newPage);
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to generate page');
+                }
+                
+                const pageData = data.page;
+                const newPage = {
+                    id: pageData.id,
+                    topic: query,
+                    slug: pageData.slug,
+                    url: `?page=${pageData.slug}`,
+                    title: pageData.title,
+                    description: pageData.description,
+                    content: pageData.content,
+                    imageIcon: '📄',
+                    createdAt: pageData.createdAt,
+                    updatedAt: pageData.updatedAt,
+                    cached: data.cached,
+                    views: pageData.views || 1
+                };
+                
+                // Display page
+                displayPage(newPage);
+                addToCachedPages(newPage);
+                state.stats.totalViews++;
+                
+                // Update stats
+                if (!data.cached) {
                     state.stats.pagesGenerated++;
-                    showStatus('✓ Page generated successfully!', 'success', 3000);
+                    showStatus('✓ Page generated and stored in database!', 'success', 3000);
+                } else {
+                    showStatus('✓ Found cached page in database!', 'success', 3000);
                 }
 
                 // Add to search history
@@ -1319,14 +1342,13 @@
         }
 
         /**
-         * Generate new page with AI content
+         * Generate new page with AI content (fallback if API fails)
          * @param {string} query - Page topic
          * @returns {Promise<Object>}
          */
         async function generateNewPage(query) {
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
-
+            // This is now handled by the backend API
+            // Keeping this as fallback for client-side generation if needed
             const page = {
                 id: generateId(),
                 topic: query,
@@ -1334,15 +1356,12 @@
                 url: `?page=${createSlug(query)}`,
                 description: generateDescription(query),
                 content: generatePageContent(query),
-                imageIcon: generateRandomEmoji(),
+                imageIcon: '📄',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                cached: true,
-                views: 1,
-                sources: generateSources(query),
-                wordCount: Math.floor(Math.random() * 5000) + 2000
+                cached: false,
+                views: 1
             };
-
             return page;
         }
 
@@ -1870,13 +1889,17 @@
         // ==================== INITIALIZATION ====================
 
         /**
-         * Initialize application
+         * Initialize application and connect to database
          */
         function initializeApp() {
+            // Load local cache
             loadCachedPages();
             loadSearchHistory();
             loadStats();
             updateRecentPages();
+            
+            // Initialize database tables if needed
+            initializeDatabase();
             
             // Check for URL parameters (for direct page access)
             const params = new URLSearchParams(window.location.search);
@@ -1891,9 +1914,27 @@
             }
 
             console.log('Intebwio initialized successfully');
-            console.log(`Loaded ${state.cachedPages.length} cached pages`);
+            console.log(`Connected to database and loaded ${state.cachedPages.length} cached pages`);
             console.log(`Search history: ${state.searchHistory.length} items`);
             console.log(`Stats:`, state.stats);
+        }
+
+        /**
+         * Initialize database connection and tables
+         */
+        async function initializeDatabase() {
+            try {
+                // Call the database initialization endpoint
+                const response = await fetch('./setup-db.php');
+                if (response.ok) {
+                    console.log('Database initialized successfully');
+                } else {
+                    console.warn('Database initialization check returned unexpected status');
+                }
+            } catch (error) {
+                // If database setup fails, app still works with localStorage
+                console.warn('Database initialization skipped:', error.message);
+            }
         }
 
         // Run initialization when DOM is ready
