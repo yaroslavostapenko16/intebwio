@@ -1,0 +1,57 @@
+<?php
+/**
+ * JSON-LD Structured Data for Intebwio
+ * Helps Google and other search engines understand the website
+ * Created by: Yaroslav Ostapenko
+ */
+
+header('Content-Type: application/ld+json; charset=utf-8');
+
+$structuredData = [
+    "@context" => "https://schema.org",
+    "@type" => "WebApplication",
+    "name" => "Intebwio",
+    "description" => "AI-Powered Web Browser that generates and caches beautiful landing pages using Google Gemini API",
+    "url" => "https://intebwio.com",
+    "creator" => [
+        "@type" => "Person",
+        "name" => "Yaroslav Ostapenko",
+        "url" => "https://intebwio.com"
+    ],
+    "author" => [
+        "@type" => "Person",
+        "name" => "Yaroslav Ostapenko"
+    ],
+    "applicationCategory" => "Utility",
+    "releaseDate" => "2025-01-01",
+    "datePublished" => "2025-01-01",
+    "dateModified" => date('Y-m-d'),
+    "version" => "2.0.0",
+    "offers" => [
+        "@type" => "Offer",
+        "price" => "0",
+        "priceCurrency" => "USD",
+        "description" => "Free AI-powered web browser for generating landing pages"
+    ],
+    "image" => "https://intebwio.com/images/logo.png",
+    "logo" => [
+        "@type" => "ImageObject",
+        "url" => "https://intebwio.com/images/logo.png",
+        "width" => 512,
+        "height" => 512
+    ],
+    "sameAs" => [
+        "https://intebwio.com"
+    ],
+    "featureList" => [
+        "AI-powered page generation with Gemini API",
+        "Unlimited landing page creation",
+        "Content aggregation from multiple sources",
+        "Page caching and fast retrieval",
+        "Beautiful responsive design",
+        "Search functionality"
+    ]
+];
+
+echo json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+?>

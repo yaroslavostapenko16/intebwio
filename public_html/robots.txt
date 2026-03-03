@@ -1,0 +1,47 @@
+# Robots.txt for Intebwio - AI Web Browser
+# URL: https://intebwio.com/
+# Created by: Yaroslav Ostapenko
+
+# Allow all bots to crawl the site
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /logs/
+Disallow: /cache/
+Disallow: /admin.php
+Disallow: /install.php
+Disallow: /setup.php
+Disallow: /setup-db.php
+Disallow: /test-*.php
+Disallow: /diagnose-*.php
+Disallow: /d/
+Disallow: /*.sql
+
+# Crawl delay to be respectful
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://intebwio.com/sitemap.xml
+
+# Allow Google, Bing, Yandex to crawl
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0
+
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 0
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
