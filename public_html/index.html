@@ -1610,6 +1610,11 @@
          * @param {Object} page - Page to cache
          */
         function addToCachedPages(page) {
+            // Ensure cachedPages is initialized
+            if (!Array.isArray(state.cachedPages)) {
+                state.cachedPages = [];
+            }
+            
             const existingIndex = state.cachedPages.findIndex(p => p.id === page.id);
             
             if (existingIndex > -1) {
@@ -1627,9 +1632,10 @@
          */
         function saveCacheToStorage() {
             try {
+                const pages = Array.isArray(state.cachedPages) ? state.cachedPages : [];
                 localStorage.setItem(
                     CONFIG.storagePrefix + 'pages',
-                    JSON.stringify(state.cachedPages.slice(0, 20))
+                    JSON.stringify(pages.slice(0, 20))
                 );
             } catch (error) {
                 console.error('Error saving cache:', error);
@@ -1686,6 +1692,11 @@
          * @param {string} query - Search query
          */
         function addToSearchHistory(query) {
+            // Ensure searchHistory is initialized
+            if (!Array.isArray(state.searchHistory)) {
+                state.searchHistory = [];
+            }
+            
             if (!state.searchHistory.includes(query)) {
                 state.searchHistory.unshift(query);
                 if (state.searchHistory.length > 20) {
@@ -1722,6 +1733,11 @@
          */
         function updateRecentPages() {
             const grid = elements.pagesGrid;
+            
+            // Ensure cachedPages is array
+            if (!Array.isArray(state.cachedPages)) {
+                state.cachedPages = [];
+            }
             
             if (state.cachedPages.length === 0) {
                 elements.emptyState.style.display = 'block';
@@ -1781,9 +1797,14 @@
          * @param {string} query - Search query
          */
         async function updateAutocompleteSuggestions(query) {
-            if (query.length < 2) {
+            if (!query || query.length < 2) {
                 elements.autocompleteList.classList.remove('active');
                 return;
+            }
+
+            // Ensure searchHistory is array
+            if (!Array.isArray(state.searchHistory)) {
+                state.searchHistory = [];
             }
 
             const commonTopics = [
@@ -2060,11 +2081,14 @@
          * @returns {Object}
          */
         function getStats() {
+            const pages = Array.isArray(state.cachedPages) ? state.cachedPages : [];
+            const history = Array.isArray(state.searchHistory) ? state.searchHistory : [];
+            
             return {
                 ...state.stats,
-                cachedPagesCount: state.cachedPages.length,
-                searchHistoryCount: state.searchHistory.length,
-                storageUsed: JSON.stringify(state.cachedPages).length
+                cachedPagesCount: pages.length,
+                searchHistoryCount: history.length,
+                storageUsed: JSON.stringify(pages).length
             };
         }
 
