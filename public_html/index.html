@@ -1891,49 +1891,128 @@
         /**
          * Initialize application and connect to database
          */
-        function initializeApp() {
-            // Load local cache
-            loadCachedPages();
-            loadSearchHistory();
-            loadStats();
-            updateRecentPages();
-            
-            // Initialize database tables if needed
-            initializeDatabase();
-            
-            // Check for URL parameters (for direct page access)
-            const params = new URLSearchParams(window.location.search);
-            const pageSlug = params.get('page');
-            
-            if (pageSlug) {
-                const page = state.cachedPages.find(p => p.slug === pageSlug);
-                if (page) {
-                    elements.searchInput.value = page.topic;
-                    displayPage(page);
+        async function initializeApp() {
+            try {
+                // Try to load from database first
+                await initializeDatabase();
+                
+                // If no pages loaded from database, load from localStorage
+                if (state.cachedPages.length === 0) {
+                    loadCachedPages();
+                    loadSearchHistory();
+                    loadStats();
                 }
-            }
+                
+                // Setup event listeners and update UI
+                updateRecentPages();
+                
+                // Check for URL parameters (for direct page access)
+                const params = new URLSearchParams(window.location.search);
+                const pageSlug = params.get('page');
+                
+                if (pageSlug) {
+                    const page = state.cachedPages.find(p => p.slug === pageSlug);
+                    if (page) {
+                        elements.searchInput.value = page.topic;
+                        displayPage(page);
+                    }
+                }
 
-            console.log('Intebwio initialized successfully');
-            console.log(`Connected to database and loaded ${state.cachedPages.length} cached pages`);
-            console.log(`Search history: ${state.searchHistory.length} items`);
-            console.log(`Stats:`, state.stats);
+                console.log('Intebwio initialized successfully');
+                console.log(`Connected to database and loaded ${state.cachedPages.length} cached pages`);
+                console.log(`Search history: ${state.searchHistory.length} items`);
+                console.log(`Stats:`, state.stats);
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                // Fallback to localStorage
+                loadCachedPages();
+                loadSearchHistory();
+                loadStats();
+                updateRecentPages();
+            }
         }
 
         /**
-         * Initialize database connection and tables
+         * Initialize database connection and load cached pages
          */
         async function initializeDatabase() {
             try {
-                // Call the database initialization endpoint
-                const response = await fetch('./setup-db.php');
-                if (response.ok) {
+                // First initialize the database tables
+                const initResponse = await fetch('./setup-db.php');
+                if (initResponse.ok) {
                     console.log('Database initialized successfully');
                 } else {
-                    console.warn('Database initialization check returned unexpected status');
+                    console.warn('Database initialization returned status:', initResponse.status);
+                }
+                
+                // Then load cached pages from database
+                const pagesResponse = await fetch('./api/pages-list.php?action=list&limit=100');
+                if (!pagesResponse.ok) {
+                    throw new Error(`API returned status ${pagesResponse.status}`);
+                }
+                
+                const data = await pagesResponse.json();
+                
+                // Validate response structure
+                if (!data) {
+                    throw new Error('Empty response from API');
+                }
+                
+                // Handle different response formats
+                if (data.success && Array.isArray(data.pages)) {
+                    state.cachedPages = data.pages || [];
+                    console.log(`Loaded ${state.cachedPages.length} pages from database`);
+                } else if (Array.isArray(data)) {
+                    // Handle if API returns array directly
+                    state.cachedPages = data;
+                    console.log(`Loaded ${state.cachedPages.length} pages from database`);
+                } else if (data.error) {
+                    console.error('API error:', data.error);
+                    state.cachedPages = [];
+                } else {
+                    console.warn('Unexpected API response structure:', data);
+                    state.cachedPages = [];
+                }
+                
+                // Always update UI
+                if (state.cachedPages && state.cachedPages.length > 0) {
+                    updateRecentPages();
                 }
             } catch (error) {
-                // If database setup fails, app still works with localStorage
-                console.warn('Database initialization skipped:', error.message);
+                // If database fails, use localStorage as fallback
+                console.warn('Database initialization failed, using localStorage fallback:', error.message);
+                state.cachedPages = [];
+            }
+        }
+        
+        /**
+         * Load cached pages from localStorage (fallback)
+         */
+        function loadFromLocalStorage() {
+            try {
+                const stored = localStorage.getItem(CONFIG.storagePrefix + 'pages');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) {
+                        state.cachedPages = parsed;
+                    }
+                }
+                const history = localStorage.getItem(CONFIG.storagePrefix + 'history');
+                if (history) {
+                    const parsed = JSON.parse(history);
+                    if (Array.isArray(parsed)) {
+                        state.searchHistory = parsed;
+                    }
+                }
+                const stats = localStorage.getItem(CONFIG.storagePrefix + 'stats');
+                if (stats) {
+                    const parsed = JSON.parse(stats);
+                    if (parsed && typeof parsed === 'object') {
+                        state.stats = parsed;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
             }
         }
 
