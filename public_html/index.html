@@ -1914,6 +1914,21 @@
          */
         async function initializeApp() {
             try {
+                // Ensure state arrays are initialized
+                if (!Array.isArray(state.cachedPages)) {
+                    state.cachedPages = [];
+                }
+                if (!Array.isArray(state.searchHistory)) {
+                    state.searchHistory = [];
+                }
+                if (!state.stats || typeof state.stats !== 'object') {
+                    state.stats = {
+                        totalSearches: 0,
+                        totalViews: 0,
+                        pagesGenerated: 0
+                    };
+                }
+                
                 // Try to load from database first
                 await initializeDatabase();
                 
@@ -1924,6 +1939,14 @@
                     loadStats();
                 }
                 
+                // Ensure arrays are still arrays after loading
+                if (!Array.isArray(state.cachedPages)) {
+                    state.cachedPages = [];
+                }
+                if (!Array.isArray(state.searchHistory)) {
+                    state.searchHistory = [];
+                }
+                
                 // Setup event listeners and update UI
                 updateRecentPages();
                 
@@ -1931,7 +1954,7 @@
                 const params = new URLSearchParams(window.location.search);
                 const pageSlug = params.get('page');
                 
-                if (pageSlug) {
+                if (pageSlug && Array.isArray(state.cachedPages)) {
                     const page = state.cachedPages.find(p => p.slug === pageSlug);
                     if (page) {
                         elements.searchInput.value = page.topic;
@@ -1940,8 +1963,8 @@
                 }
 
                 console.log('Intebwio initialized successfully');
-                console.log(`Connected to database and loaded ${state.cachedPages.length} cached pages`);
-                console.log(`Search history: ${state.searchHistory.length} items`);
+                console.log(`Connected to database and loaded ${state.cachedPages.length || 0} cached pages`);
+                console.log(`Search history: ${state.searchHistory.length || 0} items`);
                 console.log(`Stats:`, state.stats);
             } catch (error) {
                 console.error('Error during initialization:', error);
