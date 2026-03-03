@@ -53,8 +53,8 @@ ini_set('log_errors', 1);
 ini_set('error_log', LOG_FILE);
 
 // Timeout Settings for long-running operations
-ini_set('max_execution_time', 300);  // 5 minutes for content generation
-ini_set('default_socket_timeout', 120);  // 2 minutes for external API calls
+ini_set('max_execution_time', 600);  // 10 minutes for content generation
+ini_set('default_socket_timeout', 180);  // 3 minutes for external API calls
 
 // Enable CORS for API
 header('Access-Control-Allow-Origin: *');

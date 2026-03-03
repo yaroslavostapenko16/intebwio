@@ -133,7 +133,7 @@ PROMPT;
             ],
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_TIMEOUT => 60,
+            CURLOPT_TIMEOUT => 300,  // Increased to 300 seconds for API processing
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2
         ]);
@@ -202,7 +202,7 @@ PROMPT;
             CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_TIMEOUT => 120,  // Increased to 120 seconds (2 minutes)
+            CURLOPT_TIMEOUT => 300,  // Increased to 300 seconds (5 minutes) to allow Gemini API to process
             CURLOPT_CONNECTTIMEOUT => 30,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2
@@ -291,7 +291,7 @@ PROMPT;
             ],
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_TIMEOUT => 60,
+            CURLOPT_TIMEOUT => 300,  // Increased to 300 seconds for API processing
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2
         ]);

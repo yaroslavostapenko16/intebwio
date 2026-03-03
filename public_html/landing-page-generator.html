@@ -324,8 +324,8 @@
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Generating your landing page with Gemini AI...</p>
-            <p style="font-size: 0.9em; color: #5f6368; margin-top: 10px;">This may take 10-30 seconds</p>
+            <p id="loadingText">Generating your landing page with Gemini AI...</p>
+            <p style="font-size: 0.9em; color: #5f6368; margin-top: 10px;" id="loadingSubtext">This may take 10-60 seconds. Don't close the page!</p>
         </div>
 
         <div class="error" id="error"></div>
@@ -363,10 +363,23 @@
             hideError();
             hideSuccess();
 
+            let startTime = Date.now();
+            let progressInterval;
+
             try {
-                // Add timeout to fetch request (3 minutes = 180 seconds)
+                // Add timeout to fetch request (10 minutes = 600 seconds to allow for Gemini API delays)
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 180000);
+                const timeoutId = setTimeout(() => controller.abort(), 600000);
+
+                // Start progress timer that updates UI
+                progressInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    let msg = `Generating your landing page with Gemini AI...`;
+                    if (elapsed > 5) msg += ` (${elapsed}s elapsed)`;
+                    if (elapsed > 30) msg = `Still generating... (${elapsed}s elapsed)<br>Note: First time generation takes longer due to AI processing`;
+                    if (elapsed > 60) msg = `Deep processing... (${elapsed}s elapsed)<br>This is normal for complex topics. Hang tight!`;
+                    document.getElementById('loadingText').innerHTML = msg;
+                }, 1000);
 
                 const response = await fetch('/api/ai-search.php', {
                     method: 'POST',
@@ -375,12 +388,14 @@
                     },
                     body: JSON.stringify({
                         query: query,
-                        use_existing: false
+                        use_existing: false,
+                        skip_aggregation: false  // Quality over speed
                     }),
                     signal: controller.signal
                 });
 
                 clearTimeout(timeoutId);
+                clearInterval(progressInterval);
 
                 const data = await response.json();
 
@@ -408,8 +423,15 @@
                 }
                 showSuccess(successMsg);
             } catch (error) {
+                clearInterval(progressInterval);
                 if (error.name === 'AbortError') {
-                    showError('Generation timeout - took too long. Please try a simpler query.');
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    showError('⏱️ Generation timeout after ' + elapsed + ' seconds<br>' +
+                        'This might mean:<br>' +
+                        '• The Gemini API is overloaded<br>' +
+                        '• Your query is too complex<br>' +
+                        '• Network issues<br>' +
+                        '<br>Try again with a simpler search term like "Python" instead of "How to learn Python for web development in 2026"');
                 } else {
                     let fullError = 'Error: ' + error.message;
                     console.error('Generation error details:', error);
