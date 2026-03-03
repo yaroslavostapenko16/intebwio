@@ -1,7 +1,11 @@
 <?php
 /**
  * Page Generation API
- * Generates new pages using AI and stores them in database
+ * Main logic:
+ * 1. Check if exact page exists
+ * 2. Check if similar page exists (similarity matching)
+ * 3. If not exists, create new page
+ * 4. Returns page data with slug for redirect
  */
 
 header('Content-Type: application/json');
@@ -9,8 +13,6 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 
 require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/Database.php';
-require_once __DIR__ . '/../includes/PageGenerator.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -28,9 +30,13 @@ try {
     // Sanitize query
     $query = trim(htmlspecialchars($query, ENT_QUOTES, 'UTF-8'));
     
+    if (strlen($query) < 2) {
+        throw new Exception('Query must be at least 2 characters');
+    }
+    
     switch ($action) {
         case 'generate':
-            generatePage($pdo, $query);
+            handleSearch($pdo, $query);
             break;
         case 'check':
             checkPageExists($pdo, $query);
@@ -52,54 +58,122 @@ try {
 }
 
 /**
- * Generate a new page and store in database
+ * Main search handler - implements the core logic
+ * 1. Check for exact match (case-insensitive)
+ * 2. Check for similar pages (Levenshtein similarity)
+ * 3. Create new page if nothing found
  */
-function generatePage($pdo, $query) {
-    // Check if page already exists with similar query
+function handleSearch($pdo, $query) {
+    // Step 1: Check for exact match (case-insensitive)
     $stmt = $pdo->prepare("
-        SELECT * FROM pages 
-        WHERE query LIKE :query 
+        SELECT id, query, slug, title, description, html_content, view_count, 
+               created_at, updated_at
+        FROM pages 
+        WHERE LOWER(TRIM(query)) = LOWER(TRIM(:query))
         AND status = 'active'
-        ORDER BY created_at DESC 
         LIMIT 1
     ");
     
-    $stmt->execute(['query' => '%' . $query . '%']);
+    $stmt->execute(['query' => $query]);
     $existingPage = $stmt->fetch();
     
     if ($existingPage) {
-        // Check if page was recently updated
-        $lastUpdated = strtotime($existingPage['updated_at']);
-        $updateInterval = 7 * 24 * 60 * 60; // 7 days
+        // Exact match found - return cached page
+        updatePageViews($pdo, $existingPage['id']);
         
-        if (time() - $lastUpdated < $updateInterval) {
-            // Return cached page
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'cached' => true,
-                'page' => [
-                    'id' => $existingPage['id'],
-                    'title' => $existingPage['title'],
-                    'description' => $existingPage['description'],
-                    'slug' => $existingPage['slug'],
-                    'content' => $existingPage['html_content'],
-                    'createdAt' => $existingPage['created_at'],
-                    'updatedAt' => $existingPage['updated_at'],
-                    'views' => $existingPage['view_count']
-                ],
-                'timestamp' => date('Y-m-d H:i:s')
-            ]);
-            return;
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'cached' => true,
+            'found_type' => 'exact_match',
+            'page' => [
+                'id' => (int)$existingPage['id'],
+                'query' => $existingPage['query'],
+                'slug' => $existingPage['slug'],
+                'title' => $existingPage['title'],
+                'description' => $existingPage['description'],
+                'content' => $existingPage['html_content'],
+                'views' => (int)$existingPage['view_count'],
+                'createdAt' => $existingPage['created_at'],
+                'updatedAt' => $existingPage['updated_at']
+            ],
+            'message' => 'Found exact match in database',
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+        return;
+    }
+    
+    // Step 2: Check for similar pages
+    $stmt = $pdo->prepare("
+        SELECT id, query, slug, title, description, html_content, view_count,
+               created_at, updated_at
+        FROM pages 
+        WHERE status = 'active'
+        ORDER BY created_at DESC 
+        LIMIT 100
+    ");
+    
+    $stmt->execute();
+    $allPages = $stmt->fetchAll();
+    
+    $bestMatch = null;
+    $bestSimilarity = SIMILARITY_THRESHOLD;
+    
+    foreach ($allPages as $page) {
+        $similarity = levenshteinSimilarity($query, $page['query']);
+        
+        if ($similarity > $bestSimilarity) {
+            $bestSimilarity = $similarity;
+            $bestMatch = $page;
         }
     }
     
-    try {
-        // Generate new page
-        $pageGenerator = new PageGenerator($pdo);
+    if ($bestMatch) {
+        // Similar page found - return it
+        updatePageViews($pdo, $bestMatch['id']);
         
-        // Create slug from query
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'cached' => true,
+            'found_type' => 'similar_match',
+            'similarity_score' => round($bestSimilarity, 3),
+            'page' => [
+                'id' => (int)$bestMatch['id'],
+                'query' => $bestMatch['query'],
+                'slug' => $bestMatch['slug'],
+                'title' => $bestMatch['title'],
+                'description' => $bestMatch['description'],
+                'content' => $bestMatch['html_content'],
+                'views' => (int)$bestMatch['view_count'],
+                'createdAt' => $bestMatch['created_at'],
+                'updatedAt' => $bestMatch['updated_at']
+            ],
+            'message' => 'Found similar page: "' . $bestMatch['query'] . '"',
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+        return;
+    }
+    
+    // Step 3: No page found - create new one
+    createNewPage($pdo, $query);
+}
+
+/**
+ * Create a new page 
+ */
+function createNewPage($pdo, $query) {
+    try {
         $slug = createSlug($query);
+        
+        // Check if slug already exists and make it unique
+        $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM pages WHERE slug = :slug");
+        $stmt->execute(['slug' => $slug]);
+        $result = $stmt->fetch();
+        
+        if ($result['count'] > 0) {
+            $slug = $slug . '-' . time();
+        }
         
         // Generate description
         $descriptions = [
@@ -109,7 +183,9 @@ function generatePage($pdo, $query) {
             "The ultimate resource for {$query}",
             "Comprehensive information on {$query}",
             "Expert insights on {$query}",
-            "Detailed analysis of {$query}"
+            "Detailed analysis of {$query}",
+            "Best practices for {$query}",
+            "Comprehensive overview of {$query}"
         ];
         $description = $descriptions[array_rand($descriptions)];
         
@@ -118,8 +194,13 @@ function generatePage($pdo, $query) {
         
         // Store in database
         $stmt = $pdo->prepare("
-            INSERT INTO pages (query, slug, title, description, html_content, ai_provider, ai_model, status, created_at, updated_at)
-            VALUES (:query, :slug, :title, :description, :html_content, :ai_provider, :ai_model, 'active', NOW(), NOW())
+            INSERT INTO pages (
+                query, slug, title, description, html_content, 
+                ai_provider, ai_model, status, view_count, created_at, updated_at
+            ) VALUES (
+                :query, :slug, :title, :description, :html_content,
+                :ai_provider, :ai_model, 'active', 1, NOW(), NOW()
+            )
         ");
         
         $stmt->execute([
@@ -138,16 +219,19 @@ function generatePage($pdo, $query) {
         echo json_encode([
             'success' => true,
             'cached' => false,
+            'found_type' => 'new_page',
             'page' => [
                 'id' => (int)$pageId,
+                'query' => $query,
+                'slug' => $slug,
                 'title' => $query,
                 'description' => $description,
-                'slug' => $slug,
                 'content' => $htmlContent,
+                'views' => 1,
                 'createdAt' => date('Y-m-d H:i:s'),
-                'updatedAt' => date('Y-m-d H:i:s'),
-                'views' => 1
+                'updatedAt' => date('Y-m-d H:i:s')
             ],
+            'message' => 'New page created successfully',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
         
@@ -155,7 +239,7 @@ function generatePage($pdo, $query) {
         http_response_code(500);
         echo json_encode([
             'success' => false,
-            'error' => 'Failed to generate page: ' . $e->getMessage(),
+            'error' => 'Failed to create page: ' . $e->getMessage(),
             'timestamp' => date('Y-m-d H:i:s')
         ]);
     }
@@ -166,21 +250,21 @@ function generatePage($pdo, $query) {
  */
 function checkPageExists($pdo, $query) {
     $stmt = $pdo->prepare("
-        SELECT id, slug, created_at, updated_at 
+        SELECT id, slug, title, query, created_at
         FROM pages 
-        WHERE query LIKE :query 
+        WHERE LOWER(TRIM(query)) = LOWER(TRIM(:query))
         AND status = 'active'
         LIMIT 1
     ");
     
-    $stmt->execute(['query' => '%' . $query . '%']);
+    $stmt->execute(['query' => $query]);
     $page = $stmt->fetch();
     
     http_response_code(200);
     echo json_encode([
         'success' => true,
         'exists' => !empty($page),
-        'page' => $page,
+        'page' => $page ?: null,
         'timestamp' => date('Y-m-d H:i:s')
     ]);
 }
@@ -190,7 +274,9 @@ function checkPageExists($pdo, $query) {
  */
 function getPageBySlug($pdo, $slug) {
     $stmt = $pdo->prepare("
-        SELECT * FROM pages 
+        SELECT id, query, slug, title, description, html_content, view_count,
+               created_at, updated_at
+        FROM pages 
         WHERE slug = :slug 
         AND status = 'active'
     ");
@@ -208,40 +294,69 @@ function getPageBySlug($pdo, $slug) {
         return;
     }
     
-    // Increment view count
-    $updateStmt = $pdo->prepare("
-        UPDATE pages 
-        SET view_count = view_count + 1 
-        WHERE id = :id
-    ");
-    $updateStmt->execute(['id' => $page['id']]);
+    // Update views
+    updatePageViews($pdo, $page['id']);
     
     http_response_code(200);
     echo json_encode([
         'success' => true,
         'page' => [
             'id' => (int)$page['id'],
+            'query' => $page['query'],
+            'slug' => $page['slug'],
             'title' => $page['title'],
             'description' => $page['description'],
-            'slug' => $page['slug'],
             'content' => $page['html_content'],
+            'views' => (int)$page['view_count'],
             'createdAt' => $page['created_at'],
-            'updatedAt' => $page['updated_at'],
-            'views' => (int)$page['view_count'] + 1
+            'updatedAt' => $page['updated_at']
         ],
         'timestamp' => date('Y-m-d H:i:s')
     ]);
 }
 
 /**
+ * Update page view count
+ */
+function updatePageViews($pdo, $pageId) {
+    try {
+        $stmt = $pdo->prepare("
+            UPDATE pages 
+            SET view_count = view_count + 1, updated_at = NOW()
+            WHERE id = :id
+        ");
+        $stmt->execute(['id' => $pageId]);
+    } catch (Exception $e) {
+        // Log error but don't fail
+        error_log('Error updating page views: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Calculate Levenshtein similarity (0-1 score)
+ */
+function levenshteinSimilarity($str1, $str2) {
+    $str1 = strtolower(trim($str1));
+    $str2 = strtolower(trim($str2));
+    
+    if ($str1 === $str2) return 1.0;
+    
+    if (strlen($str1) === 0 || strlen($str2) === 0) return 0.0;
+    
+    $distance = levenshtein($str1, $str2);
+    $longer = strlen($str1) > strlen($str2) ? strlen($str1) : strlen($str2);
+    
+    return (double)(($longer - $distance) / $longer);
+}
+
+/**
  * Create URL slug from text
  */
 function createSlug($text) {
-    $text = strtolower(trim($text));
-    $text = preg_replace('/[^\w\s-]/', '', $text);
-    $text = preg_replace('/\s+/', '-', $text);
-    $text = preg_replace('/-+/', '-', $text);
-    return substr($text, 0, 100);
+    $slug = strtolower(trim($text));
+    $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+    $slug = trim($slug, '-');
+    return substr($slug, 0, 100);
 }
 
 /**
@@ -336,4 +451,6 @@ function generateHTMLPage($topic) {
 </article>
 HTML;
 }
+
 ?>
+
