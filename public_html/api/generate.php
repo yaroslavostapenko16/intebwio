@@ -1,11 +1,16 @@
 <?php
 /**
- * Page Generation API
+ * Page Generation API - FIXED
  * Main logic:
- * 1. Check if exact page exists
- * 2. Check if similar page exists (similarity matching)
- * 3. If not exists, create new page
- * 4. Returns page data with slug for redirect
+ * 1. Check if exact page exists - Return from cache
+ * 2. Check if similar page exists - Return cached similar page
+ * 3. If page doesn't exist:
+ *    a. Call Gemini API with user request
+ *    b. Get HTML code response from Gemini
+ *    c. Send/Store HTML to database
+ *    d. Call/Retrieve it back from database
+ *    e. Return to frontend
+ * 4. Update page views and timestamps
  */
 
 header('Content-Type: application/json');
@@ -13,6 +18,7 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 
 require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/AIService.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -27,8 +33,9 @@ try {
         throw new Exception('Search query is required');
     }
     
-    // Sanitize query
-    $query = trim(htmlspecialchars($query, ENT_QUOTES, 'UTF-8'));
+    // Sanitize query - keep original text
+    $originalQuery = trim($query);
+    $query = $originalQuery;
     
     if (strlen($query) < 2) {
         throw new Exception('Query must be at least 2 characters');
@@ -58,10 +65,12 @@ try {
 }
 
 /**
- * Main search handler - implements the core logic
+ * Main search handler - implements the FIXED core logic
  * 1. Check for exact match (case-insensitive)
  * 2. Check for similar pages (Levenshtein similarity)
- * 3. Create new page if nothing found
+ * 3. Call Gemini API if nothing found
+ * 4. Store in database
+ * 5. Return from database
  */
 function handleSearch($pdo, $query) {
     // Step 1: Check for exact match (case-insensitive)
@@ -155,15 +164,51 @@ function handleSearch($pdo, $query) {
         return;
     }
     
-    // Step 3: No page found - create new one
-    createNewPage($pdo, $query);
+    // Step 3: No page found - Call Gemini API to generate new page
+    error_log("=== STARTING NEW PAGE GENERATION FOR QUERY: " . $query);
+    createNewPageWithGemini($pdo, $query);
 }
 
 /**
- * Create a new page 
+ * Create new page using Gemini API
+ * FIXED: This now calls Gemini API, stores HTML in database, and retrieves it back
+ * 
+ * Workflow:
+ * 1. Call Gemini API with user query
+ * 2. Get HTML response from Gemini
+ * 3. Send HTML to database
+ * 4. Retrieve page from database by ID
+ * 5. Return database response to frontend
  */
-function createNewPage($pdo, $query) {
+function createNewPageWithGemini($pdo, $query) {
     try {
+        error_log("Step 1: Preparing to call Gemini API for query: $query");
+        
+        // Initialize AI Service with Gemini
+        $aiService = new AIService(AI_PROVIDER, GEMINI_API_KEY);
+        
+        // Create the prompt for Gemini
+        $prompt = buildGeminiPrompt($query);
+        
+        error_log("Step 2: Calling Gemini API with prompt of " . strlen($prompt) . " characters");
+        
+        // Step 1: Call Gemini API and get HTML response
+        $htmlContent = $aiService->generatePageContent($query, []);
+        
+        if (!$htmlContent || strlen($htmlContent) < 100) {
+            error_log("ERROR: Gemini API returned empty or invalid content");
+            throw new Exception('Failed to generate page content from Gemini API. Please try again.');
+        }
+        
+        error_log("Step 3: Received HTML content from Gemini (" . strlen($htmlContent) . " characters)");
+        
+        // Wrap raw Gemini content in proper HTML structure if needed
+        if (stripos($htmlContent, '<html') === false && stripos($htmlContent, '<!DOCTYPE') === false) {
+            $htmlContent = wrapHTMLContent($htmlContent);
+            error_log("Step 3b: Wrapped content in HTML structure");
+        }
+        
+        // Create slug and title
         $slug = createSlug($query);
         
         // Check if slug already exists and make it unique
@@ -173,6 +218,7 @@ function createNewPage($pdo, $query) {
         
         if ($result['count'] > 0) {
             $slug = $slug . '-' . time();
+            error_log("Slug already exists, created unique slug: $slug");
         }
         
         // Generate description
@@ -183,16 +229,13 @@ function createNewPage($pdo, $query) {
             "The ultimate resource for {$query}",
             "Comprehensive information on {$query}",
             "Expert insights on {$query}",
-            "Detailed analysis of {$query}",
-            "Best practices for {$query}",
-            "Comprehensive overview of {$query}"
+            "Detailed analysis of {$query}"
         ];
         $description = $descriptions[array_rand($descriptions)];
         
-        // Generate HTML content
-        $htmlContent = generateHTMLPage($query);
+        error_log("Step 4: Storing HTML content in database");
         
-        // Store in database
+        // Step 2: Store HTML in database
         $stmt = $pdo->prepare("
             INSERT INTO pages (
                 query, slug, title, description, html_content, 
@@ -203,46 +246,317 @@ function createNewPage($pdo, $query) {
             )
         ");
         
-        $stmt->execute([
+        $success = $stmt->execute([
             'query' => $query,
             'slug' => $slug,
             'title' => $query,
             'description' => $description,
             'html_content' => $htmlContent,
             'ai_provider' => AI_PROVIDER,
-            'ai_model' => 'gemini-pro'
+            'ai_model' => 'gemini-2.5-flash'
         ]);
         
-        $pageId = $pdo->lastInsertId();
+        if (!$success) {
+            throw new Exception('Failed to store page in database');
+        }
         
+        $pageId = $pdo->lastInsertId();
+        error_log("Step 5: Page stored in database with ID: $pageId");
+        
+        // Step 3: Retrieve page from database
+        error_log("Step 6: Retrieving page from database");
+        
+        $stmt = $pdo->prepare("
+            SELECT id, query, slug, title, description, html_content, view_count,
+                   created_at, updated_at
+            FROM pages 
+            WHERE id = :id
+        ");
+        
+        $stmt->execute(['id' => $pageId]);
+        $retrievedPage = $stmt->fetch();
+        
+        if (!$retrievedPage) {
+            throw new Exception('Failed to retrieve created page from database');
+        }
+        
+        error_log("Step 7: Successfully retrieved page from database, returning to frontend");
+        
+        // Step 4: Return the page from database to frontend
         http_response_code(201);
         echo json_encode([
             'success' => true,
             'cached' => false,
-            'found_type' => 'new_page',
+            'found_type' => 'newly_generated',
+            'generation_method' => 'gemini_api',
             'page' => [
-                'id' => (int)$pageId,
-                'query' => $query,
-                'slug' => $slug,
-                'title' => $query,
-                'description' => $description,
-                'content' => $htmlContent,
-                'views' => 1,
-                'createdAt' => date('Y-m-d H:i:s'),
-                'updatedAt' => date('Y-m-d H:i:s')
+                'id' => (int)$retrievedPage['id'],
+                'query' => $retrievedPage['query'],
+                'slug' => $retrievedPage['slug'],
+                'title' => $retrievedPage['title'],
+                'description' => $retrievedPage['description'],
+                'content' => $retrievedPage['html_content'],
+                'views' => (int)$retrievedPage['view_count'],
+                'createdAt' => $retrievedPage['created_at'],
+                'updatedAt' => $retrievedPage['updated_at']
             ],
-            'message' => 'New page created successfully',
+            'message' => 'New page generated with Gemini API and stored in database',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
         
     } catch (Exception $e) {
+        error_log("ERROR in createNewPageWithGemini: " . $e->getMessage());
         http_response_code(500);
         echo json_encode([
             'success' => false,
-            'error' => 'Failed to create page: ' . $e->getMessage(),
+            'error' => 'Page generation failed: ' . $e->getMessage(),
+            'hint' => 'Please check that the Gemini API key is valid and the API is accessible',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
     }
+}
+
+/**
+ * Build a detailed prompt for Gemini API to create comprehensive HTML content
+ */
+function buildGeminiPrompt($query) {
+    $prompt = <<<PROMPT
+You are an expert web content creator and HTML developer. Your task is to create a comprehensive, beautiful, and well-structured HTML landing page about: "$query"
+
+REQUIREMENTS:
+1. Return ONLY valid HTML code (starting with <!DOCTYPE html> or <html>)
+2. Include embedded CSS styling within <style> tags
+3. Create a complete, self-contained HTML document
+4. Use modern, professional design with:
+   - Clean typography
+   - Professional color scheme (blues, greys)
+   - Responsive grid layouts
+   - Clear section organization
+   - Navigation and headers
+5. Include these sections in the HTML:
+   - What is "$query"? (Introduction with 2-3 paragraphs)
+   - Key Concepts (5-7 important concepts with explanations)
+   - Historical Context (Brief history or background)
+   - Current State & Trends (Modern developments)
+   - Real-World Applications (Practical use cases)
+   - Benefits & Advantages (Why it matters)
+   - Challenges & Considerations (Important caveats)
+   - Getting Started (How to learn more)
+   - Conclusion
+
+6. Use proper HTML semantic elements:
+   - <header>, <main>, <section>, <article>, <footer>
+   - <h1>, <h2>, <h3> for hierarchy
+   - <p>, <ul>, <ol> for content
+   - <table> for structured data where appropriate
+   - <figure> and <figcaption> for visuals
+
+7. Include CSS styling that makes the page beautiful:
+   - Gradient backgrounds
+   - Proper spacing and padding
+   - Professional fonts (use Google Fonts if needed)
+   - Nice colors and visual hierarchy
+   - Tables with proper styling
+   - Cards or containers for sections
+
+8. Add interactive elements where appropriate:
+   - Hover effects on buttons/links
+   - Smooth transitions
+   - Visual separators between sections
+
+9. Make it informative and accurate:
+   - Include relevant facts and statistics
+   - Provide actual useful information
+   - Be comprehensive but concise
+   - Use professional language
+
+10. The HTML must be:
+    - Valid and well-formed
+    - Self-contained (no external dependencies except Google Fonts if needed)
+    - Mobile-responsive
+    - Accessible
+    - Complete with a proper footer
+
+Start your response with <!DOCTYPE html> and include everything needed for a complete landing page.
+PROMPT;
+    
+    return $prompt;
+}
+
+/**
+ * Wrap plain content in HTML structure if needed
+ */
+function wrapHTMLContent($content) {
+    $styling = <<<CSS
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    :root {
+        --primary: #2563eb;
+        --secondary: #7c3aed;
+        --dark: #1e293b;
+        --light: #f8fafc;
+        --border: #e2e8f0;
+        --text: #334155;
+        --text-light: #64748b;
+    }
+    
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.8;
+        color: var(--text);
+        background: linear-gradient(135deg, var(--light) 0%, #e0e7ff 100%);
+        padding: 20px;
+    }
+    
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 60px 40px;
+        text-align: center;
+    }
+    
+    header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    main {
+        padding: 40px;
+    }
+    
+    section {
+        margin-bottom: 40px;
+    }
+    
+    h2 {
+        color: var(--dark);
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+        border-bottom: 3px solid var(--primary);
+        padding-bottom: 10px;
+    }
+    
+    h3 {
+        color: var(--dark);
+        font-size: 1.3rem;
+        margin-top: 25px;
+        margin-bottom: 12px;
+    }
+    
+    p {
+        color: var(--text-light);
+        margin-bottom: 15px;
+        line-height: 1.8;
+    }
+    
+    ul, ol {
+        margin-left: 20px;
+        margin-bottom: 20px;
+    }
+    
+    li {
+        margin-bottom: 10px;
+        color: var(--text-light);
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    th {
+        background: var(--primary);
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: 700;
+    }
+    
+    td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    footer {
+        background: var(--dark);
+        color: white;
+        padding: 30px 40px;
+        text-align: center;
+    }
+    
+    footer a {
+        color: var(--primary);
+        text-decoration: none;
+    }
+    
+    @media (max-width: 768px) {
+        header {
+            padding: 40px 20px;
+        }
+        
+        header h1 {
+            font-size: 1.8rem;
+        }
+        
+        main {
+            padding: 20px;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+        }
+    }
+</style>
+CSS;
+    
+    return "<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <title>Generated Page</title>
+    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap\" rel=\"stylesheet\">
+    $styling
+</head>
+<body>
+    <div class=\"container\">
+        <main>
+            $content
+        </main>
+        <footer>
+            <p>&copy; 2026 Intebwio - AI-Powered Web Browser. Generated with Gemini API.</p>
+        </footer>
+    </div>
+</body>
+</html>";
+}
+
+/**
+ * DEPRECATED: Old createNewPage function - replaced by createNewPageWithGemini
+ */
+function createNewPage($pdo, $query) {
+    // This function is deprecated and replaced by createNewPageWithGemini
+    // Kept for reference only
+    error_log("WARNING: createNewPage() called - should use createNewPageWithGemini() instead");
+    createNewPageWithGemini($pdo, $query);
 }
 
 /**
@@ -357,99 +671,6 @@ function createSlug($text) {
     $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
     $slug = trim($slug, '-');
     return substr($slug, 0, 100);
-}
-
-/**
- * Generate complete HTML page content
- */
-function generateHTMLPage($topic) {
-    $safeTopicText = htmlspecialchars($topic, ENT_QUOTES, 'UTF-8');
-    
-    return <<<HTML
-<article class="page-article">
-    <section class="page-section">
-        <h2>Overview of {$safeTopicText}</h2>
-        <p>
-            {$safeTopicText} is a multifaceted and important subject that has garnered significant attention 
-            from researchers, professionals, and industry experts. This comprehensive guide provides an 
-            in-depth examination of the fundamental concepts, historical context, and current developments 
-            within this field.
-        </p>
-    </section>
-
-    <section class="page-section">
-        <h3>Historical Context</h3>
-        <p>
-            The evolution of {$safeTopicText} reflects decades of innovation and discovery. From its initial 
-            conceptualization to present-day applications, this field has undergone remarkable transformation. 
-            Pioneering figures established foundational principles that continue to shape modern practices.
-        </p>
-        <ul>
-            <li>Early developments and foundational work</li>
-            <li>Key breakthroughs and innovations</li>
-            <li>Evolution of methodology and practice</li>
-            <li>Contemporary applications and impact</li>
-        </ul>
-    </section>
-
-    <section class="page-section">
-        <h3>Core Concepts and Principles</h3>
-        <p>Understanding {$safeTopicText} requires familiarity with several fundamental concepts:</p>
-        <ul>
-            <li><strong>Basic Fundamentals:</strong> The essential building blocks and foundational knowledge</li>
-            <li><strong>Theoretical Frameworks:</strong> Major theories explaining processes and phenomena</li>
-            <li><strong>Practical Implementation:</strong> Real-world applications and use cases</li>
-            <li><strong>Best Practices:</strong> Industry standards and optimal approaches</li>
-            <li><strong>Emerging Trends:</strong> New developments and future directions</li>
-        </ul>
-    </section>
-
-    <section class="page-section">
-        <h3>Key Benefits and Applications</h3>
-        <p>
-            The study and application of {$safeTopicText} offers numerous advantages and practical benefits:
-        </p>
-        <ul>
-            <li>Enhanced understanding and knowledge</li>
-            <li>Practical problem-solving abilities</li>
-            <li>Professional advancement opportunities</li>
-            <li>Innovation and creative thinking</li>
-            <li>Improved decision-making capabilities</li>
-        </ul>
-    </section>
-
-    <section class="page-section">
-        <h3>Challenges and Considerations</h3>
-        <p>While {$safeTopicText} offers tremendous potential, several challenges require careful consideration:</p>
-        <ul>
-            <li>Complexity and learning curve</li>
-            <li>Resource requirements</li>
-            <li>Evolving standards and practices</li>
-            <li>Integration with existing systems</li>
-            <li>Ongoing education and development</li>
-        </ul>
-    </section>
-
-    <section class="page-section">
-        <h3>Future Prospects</h3>
-        <p>
-            The future of {$safeTopicText} appears promising, with numerous opportunities for advancement. 
-            Emerging technologies, changing market dynamics, and increased awareness are driving innovation 
-            and opening new possibilities for development and application.
-        </p>
-    </section>
-
-    <section class="page-section">
-        <h3>Conclusion</h3>
-        <p>
-            {$safeTopicText} represents a rich and evolving field with significant implications for professionals 
-            and organizations. By staying informed about key developments and best practices, individuals and 
-            institutions can leverage these insights to achieve their goals and contribute to ongoing progress 
-            within the discipline.
-        </p>
-    </section>
-</article>
-HTML;
 }
 
 ?>
